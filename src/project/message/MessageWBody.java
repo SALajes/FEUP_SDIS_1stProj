@@ -5,7 +5,7 @@ public class MessageWBody extends BaseMessage {
     protected final byte[] message;
     protected final int message_length;
 
-    public MessageWBody(String version, String message_type, String sender_id, String file_id, byte[] message, int message_length) {
+    public MessageWBody(String version, Message_type message_type, String sender_id, String file_id, byte[] message, int message_length) {
         super(version, message_type, sender_id, file_id);
 
         this.message = message;

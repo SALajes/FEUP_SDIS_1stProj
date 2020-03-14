@@ -8,7 +8,7 @@ class MessageWRepDegree extends MessageWBody {
     private final int chunk_no;
     private final int replication_degree;
 
-    public MessageWRepDegree(String version, String message_type, String sender_id, String file_id, int chunk_no,
+    public MessageWRepDegree(String version, Message_type message_type, String sender_id, String file_id, int chunk_no,
             int replication_degree, byte[] message, int message_length) {
         super(version, message_type, sender_id, file_id, message, message_length);
         this.chunk_no = chunk_no;
