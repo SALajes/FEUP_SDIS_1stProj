@@ -1,4 +1,4 @@
-package project.message;
+package message;
 
 public class MessageWBody extends BaseMessage {
     //   BODY - for messages PUTCHUNK, CHUNK
@@ -12,12 +12,12 @@ public class MessageWBody extends BaseMessage {
         this.message_length = message_length;
     }
 
-    public String getMessage() {
-        return this.message;
+    public byte[] getMessage() {
+        return message;
     }
 
-    public String getMessage_Length() {
-        return message_Length;
+    public int getMessage_Length() {
+        return message_length;
     }
 
 }

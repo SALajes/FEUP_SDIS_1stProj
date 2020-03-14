@@ -1,4 +1,5 @@
-package project.message;
+package message;
+
 
 /**
  *   Possible messages_types are STORED, GETCHUNK, REMOVED

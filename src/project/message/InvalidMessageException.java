@@ -1,6 +1,4 @@
-package project.message;
-
-import java.io.*;
+package message;
 
 /**
  * USed if the file has a size greater than the one "possible" in this project
@@ -8,7 +6,7 @@ import java.io.*;
 public class InvalidMessageException extends Exception {
     private String message;
 
-    public InvalidMessage(String message) {
+    public void InvalidMessage(String message) {
         this.setMessage(message);
     }
 
@@ -19,6 +17,6 @@ public class InvalidMessageException extends Exception {
     public void setMessage(String message) {
         this.message = message;
     }
-   
+
 
 }

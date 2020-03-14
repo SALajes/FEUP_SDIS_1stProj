@@ -1,4 +1,4 @@
-package project.message;
+package message;
 
 /**
  *  Only message type possible is PUTCHUNK that was a BODY

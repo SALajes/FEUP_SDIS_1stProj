@@ -1,4 +1,4 @@
-package project.message;
+package message;
 
 /**
  * fields common to all messages
@@ -11,8 +11,10 @@ public class BaseMessage {
     private final String sender_id;
     private final String file_id;
     //terminated with the sequence '0xD''0xA' '0xD''0xA' - <CRLF><CRLF>
+    public final static byte CR = 0xD;
+    public final static byte LF = 0xA;
 
-    public BaseMessage(String version, String message_type, String sender_id, String file_id, byte[] message, int message_length) {
+    public BaseMessage(String version, String message_type, String sender_id, String file_id) {
         this.version = version;
         this.message_type = message_type;
         this.sender_id = sender_id;
