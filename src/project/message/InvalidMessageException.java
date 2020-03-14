@@ -1,8 +1,11 @@
-package project1920-t1g07.message;
+package project.message;
 
 import java.io.*;
 
-public class InvalidMessage extends Exception {
+/**
+ * USed if the file has a size greater than the one "possible" in this project
+ */
+public class InvalidMessageException extends Exception {
     private String message;
 
     public InvalidMessage(String message) {
