@@ -1,4 +1,3 @@
-import java.io.File;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
@@ -25,7 +24,7 @@ public class Peer implements RemoteInterface {
         }
 
         try{
-            protocol_version = Double.parseDouble(args[0]); //should be 1.0
+            protocol_version = Double.parseDouble(args[0]);
             id = Integer.parseInt(args[1]);
 
             //since we are using RMI transport protocol, then the access_point is <remote_object_name>
@@ -50,7 +49,7 @@ public class Peer implements RemoteInterface {
 
 
     public void backup(String file_path, int replication_degree) throws RemoteException{
-        final String file_name = new File(file_path).getName();
+
     }
 
     @Override

@@ -14,7 +14,7 @@ public class Channels{
     public static int MDR_port;
     public static InetAddress MDR_InetAddress;
 
-    public Channels(String[] args) throws UnknownHostException, java.net.UnknownHostException {
+    public Channels(String[] args) throws java.net.UnknownHostException {
         this.MC_address = args[3];
         this.MC_port = Integer.parseInt(args[4]);
 
