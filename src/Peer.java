@@ -1,10 +1,11 @@
+import java.io.File;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 public class Peer implements RemoteInterface {
-    private final int RegistryPort = 1099;
+    private static final int RegistryPort = 1099;
 
     private static int id;
     private static double protocol_version;
@@ -24,19 +25,19 @@ public class Peer implements RemoteInterface {
         }
 
         try{
-            this.protocol_version = Double.parseDouble(args[0]);
-            this.id = Integer.parseInt(args[1]);
+            protocol_version = Double.parseDouble(args[0]); //should be 1.0
+            id = Integer.parseInt(args[1]);
 
             //since we are using RMI transport protocol, then the access_point is <remote_object_name>
-            this.service_access_point = args[2];
+            service_access_point = args[2];
 
-            this.channels = new Channels(args);
+            channels = new Channels(args);
 
             Peer object_peer = new Peer();
             RemoteInterface stub = (RemoteInterface) UnicastRemoteObject.exportObject(object_peer, 0);
 
-            Registry registry = LocateRegistry.createRegistry(this.RegistryPort);
-            registry.rebind(this.service_access_point, stub);
+            Registry registry = LocateRegistry.createRegistry(RegistryPort);
+            registry.rebind(service_access_point, stub);
 
             System.out.println("Peer ready");
 
@@ -48,7 +49,17 @@ public class Peer implements RemoteInterface {
     } //TO-DO: THREAD POOL PARA MC, MDB E MDR
 
 
-    void backup(String file_path) throws RemoteException{
+    public void backup(String file_path, int replication_degree) throws RemoteException{
+        final String file_name = new File(file_path).getName();
+    }
+
+    @Override
+    public void restore(String file_path) throws RemoteException {
+
+    }
+
+    @Override
+    public void delete(String file_path) throws RemoteException {
 
     }
 }
