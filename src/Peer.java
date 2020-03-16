@@ -12,8 +12,9 @@ public class Peer implements RemoteInterface {
     private static String service_access_point;
 
     //Addresses, ports and InetAdress of each channel
-    private static Channels channels;
-
+    private static ControlChannel MC;
+    private static MulticastDataBackupChannel MDB;
+    private static MulticastDataRecoveryChannel MDR;
 
     //class methods
     public static void main(String[] args){
@@ -30,7 +31,14 @@ public class Peer implements RemoteInterface {
             //since we are using RMI transport protocol, then the access_point is <remote_object_name>
             service_access_point = args[2];
 
-            channels = new Channels(args);
+            this.MC_address = args[3];
+            this.MC_port = Integer.parseInt(args[4]);
+
+            this.MDB_address = args[5];
+            this.MDB_port = Integer.parseInt(args[6]);
+
+            this.MDR_address = args[7];
+            this.MDR_port = Integer.parseInt(args[8]);
 
             Peer object_peer = new Peer();
             RemoteInterface stub = (RemoteInterface) UnicastRemoteObject.exportObject(object_peer, 0);
