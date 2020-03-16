@@ -1,5 +1,15 @@
-public class ControlChannel implements Runnable{
-    public static String address;
-    public static int MC_port;
-    public static InetAddress MC_InetAddr;
+package Channels;
+
+import java.net.UnknownHostException;
+
+public class ControlChannel extends Channel {
+
+    public ControlChannel(String address, int port) throws UnknownHostException {
+        super(address, port);
+    }
+
+    @Override
+    public void run() {
+
+    }
 }

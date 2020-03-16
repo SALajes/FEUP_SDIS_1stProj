@@ -1,7 +1,11 @@
+import java.io.File;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import Channels.ControlChannel;
+import Channels.MulticastDataBackupChannel;
+import Channels.MulticastDataRecoveryChannel;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
@@ -31,14 +35,9 @@ public class Peer implements RemoteInterface {
             //since we are using RMI transport protocol, then the access_point is <remote_object_name>
             service_access_point = args[2];
 
-            this.MC_address = args[3];
-            this.MC_port = Integer.parseInt(args[4]);
-
-            this.MDB_address = args[5];
-            this.MDB_port = Integer.parseInt(args[6]);
-
-            this.MDR_address = args[7];
-            this.MDR_port = Integer.parseInt(args[8]);
+            MC = new ControlChannel(args[3], Integer.parseInt(args[4]));
+            MDB = new MulticastDataBackupChannel(args[5], Integer.parseInt(args[6]));
+            MDR = new MulticastDataRecoveryChannel(args[7], Integer.parseInt(args[8]));
 
             Peer object_peer = new Peer();
             RemoteInterface stub = (RemoteInterface) UnicastRemoteObject.exportObject(object_peer, 0);
@@ -57,7 +56,7 @@ public class Peer implements RemoteInterface {
 
 
     public void backup(String file_path, int replication_degree) throws RemoteException{
-
+        final String file_name = new File(file_path).getName();
     }
 
     @Override
