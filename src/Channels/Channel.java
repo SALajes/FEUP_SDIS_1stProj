@@ -8,10 +8,15 @@ public abstract class Channel implements Runnable {
     public int port;
     public InetAddress InetAddress;
 
-    public Channel(String address, int port ) throws UnknownHostException {
+    public Channel(String address, int port ) {
         this.address = address;
         this.port = port;
-        InetAddress = InetAddress.getByName(address);
+
+        try {
+            InetAddress = InetAddress.getByName(address);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
     @Override
     public abstract void run();

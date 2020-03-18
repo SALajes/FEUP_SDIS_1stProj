@@ -1,10 +1,8 @@
 package Channels;
 
-import java.net.UnknownHostException;
-
 public class ControlChannel extends Channel {
 
-    public ControlChannel(String address, int port) throws UnknownHostException {
+    public ControlChannel(String address, int port) {
         super(address, port);
     }
 

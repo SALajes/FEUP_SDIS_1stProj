@@ -1,10 +1,8 @@
 package Channels;
 
-import java.net.UnknownHostException;
-
 public class MulticastDataBackupChannel extends Channel {
 
-    public MulticastDataBackupChannel(String address, int port) throws UnknownHostException {
+    public MulticastDataBackupChannel(String address, int port) {
         super(address, port);
     }
 

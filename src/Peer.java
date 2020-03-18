@@ -55,17 +55,59 @@ public class Peer implements RemoteInterface {
     } //TO-DO: THREAD POOL PARA MC, MDB E MDR
 
 
+    /**
+     *
+     * @param file_path
+     * @param replication_degree
+     * @throws RemoteException
+     * The client shall specify the file pathname and the desired replication degree.
+     */
     public void backup(String file_path, int replication_degree) throws RemoteException{
         final String file_name = new File(file_path).getName();
     }
 
+    /**
+     *
+     * @param file_path
+     * @throws RemoteException
+     * The client shall specify the file to restore by its pathname.
+     */
     @Override
     public void restore(String file_path) throws RemoteException {
 
     }
 
+    /**
+     *
+     * @param file_path
+     * @throws RemoteException
+     * The client shall specify the file to delete by its pathname.
+     */
     @Override
     public void delete(String file_path) throws RemoteException {
+
+    }
+
+    /**
+     *
+     * @param max_disk_space
+     * The client shall specify the maximum disk space in KBytes (1KByte = 1000 bytes) that can be used for storing chunks.
+     * It must be possible to specify a value of 0, thus reclaiming all disk space previously allocated to the service.
+     */
+    @Override
+    public void manage(int max_disk_space) {
+        if(max_disk_space < 0) {
+            System.err.println("Invalid maximum disk space");
+            System.exit(-1);
+        }
+
+    }
+
+    /**
+     * This operation allows to observe the service state.
+     */
+    @Override
+    public void retrieve_state() {
 
     }
 }
