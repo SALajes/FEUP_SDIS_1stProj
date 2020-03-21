@@ -62,8 +62,14 @@ public class Peer implements RemoteInterface {
      * @throws RemoteException
      * The client shall specify the file pathname and the desired replication degree.
      */
-    public void backup(String file_path, int replication_degree) throws RemoteException{
-        final String file_name = new File(file_path).getName();
+    public int backup(String file_path, int replication_degree) throws RemoteException{
+        File file = new File(file_path);
+        String file_name = file.getName();
+
+        //encoded file name uses the file.lastModified() because files can be changed keeping the same name
+        String file_name_to_encode = file_name + file.lastModified();
+
+        return 0;
     }
 
     /**
@@ -73,8 +79,8 @@ public class Peer implements RemoteInterface {
      * The client shall specify the file to restore by its pathname.
      */
     @Override
-    public void restore(String file_path) throws RemoteException {
-
+    public int restore(String file_path) throws RemoteException {
+        return 0;
     }
 
     /**
@@ -84,8 +90,8 @@ public class Peer implements RemoteInterface {
      * The client shall specify the file to delete by its pathname.
      */
     @Override
-    public void delete(String file_path) throws RemoteException {
-
+    public int delete(String file_path) throws RemoteException {
+        return 0;
     }
 
     /**
@@ -95,19 +101,19 @@ public class Peer implements RemoteInterface {
      * It must be possible to specify a value of 0, thus reclaiming all disk space previously allocated to the service.
      */
     @Override
-    public void manage(int max_disk_space) {
+    public int manage(int max_disk_space) {
         if(max_disk_space < 0) {
             System.err.println("Invalid maximum disk space");
             System.exit(-1);
         }
-
+        return 0;
     }
 
     /**
      * This operation allows to observe the service state.
      */
     @Override
-    public void retrieve_state() {
-
+    public String retrieve_state() {
+        return "retrieve state successful";
     }
 }
