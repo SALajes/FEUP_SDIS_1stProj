@@ -1,4 +1,4 @@
-package message;
+package project.message;
 
 /**
  * USed if the file has a size greater than the one "possible" in this project

@@ -1,4 +1,4 @@
-package message;
+package project.message;
 
 /**
  * fields common to all messages

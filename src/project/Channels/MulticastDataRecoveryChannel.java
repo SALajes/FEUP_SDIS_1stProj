@@ -1,4 +1,4 @@
-package Channels;
+package project.Channels;
 
 public class MulticastDataRecoveryChannel extends Channel {
 

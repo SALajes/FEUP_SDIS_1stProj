@@ -1,11 +1,13 @@
+package project;
+
 import java.io.File;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import Channels.ControlChannel;
-import Channels.MulticastDataBackupChannel;
-import Channels.MulticastDataRecoveryChannel;
+import project.Channels.ControlChannel;
+import project.Channels.MulticastDataBackupChannel;
+import project.Channels.MulticastDataRecoveryChannel;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
@@ -20,10 +22,16 @@ public class Peer implements RemoteInterface {
     private static MulticastDataBackupChannel MDB;
     private static MulticastDataRecoveryChannel MDR;
 
+    public Peer(String MC_address, int MC_port, String MDB_address, int MDB_port, String MDR_address, int MDR_port) throws RemoteException {
+        MC = new ControlChannel(MC_address, MC_port);
+        MDB = new MulticastDataBackupChannel(MDB_address, MDB_port);
+        MDR = new MulticastDataRecoveryChannel(MDR_address, MDR_port);
+    }
+
     //class methods
     public static void main(String[] args){
         if(args.length != 9){
-            System.out.println("Usage: java Peer format must be: Peer <protocol_version> <peer_id> <service_access_point> " +
+            System.out.println("Usage: [project.]Peer <protocol_version> <peer_id> <service_access_point> " +
                     "<MC_address> <MC_port> <MDB_address> <MDB_port> <MDR_address> <MDR_port>");
             return;
         }
@@ -35,20 +43,16 @@ public class Peer implements RemoteInterface {
             //since we are using RMI transport protocol, then the access_point is <remote_object_name>
             service_access_point = args[2];
 
-            MC = new ControlChannel(args[3], Integer.parseInt(args[4]));
-            MDB = new MulticastDataBackupChannel(args[5], Integer.parseInt(args[6]));
-            MDR = new MulticastDataRecoveryChannel(args[7], Integer.parseInt(args[8]));
-
-            Peer object_peer = new Peer();
+            Peer object_peer = new Peer(args[3], Integer.parseInt(args[4]), args[5], Integer.parseInt(args[6]), args[7], Integer.parseInt(args[8]));
             RemoteInterface stub = (RemoteInterface) UnicastRemoteObject.exportObject(object_peer, 0);
 
             Registry registry = LocateRegistry.createRegistry(RegistryPort);
             registry.rebind(service_access_point, stub);
 
-            System.out.println("Peer ready");
+            System.out.println("project.Peer ready");
 
         } catch (Exception e) {
-            System.err.println("Peer exception: " + e.toString());
+            System.err.println("project.Peer exception: " + e.toString());
             e.printStackTrace();
             return;
         }
@@ -65,6 +69,8 @@ public class Peer implements RemoteInterface {
     public int backup(String file_path, int replication_degree) throws RemoteException{
         File file = new File(file_path);
         String file_name = file.getName();
+
+        System.out.println("It's communicating");
 
         //encoded file name uses the file.lastModified() because files can be changed keeping the same name
         String file_name_to_encode = file_name + file.lastModified();

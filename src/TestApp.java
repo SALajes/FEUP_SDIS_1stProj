@@ -1,3 +1,6 @@
+import project.Peer;
+import project.RemoteInterface;
+
 import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -26,7 +29,7 @@ public class TestApp {
 
         try {
             Registry reg = LocateRegistry.getRegistry();
-            Peer peer = (Peer) reg.lookup(peer_ap);
+            RemoteInterface peer = (RemoteInterface) reg.lookup(peer_ap);
 
             switch (sub_protocol) {
                 case "BACKUP":

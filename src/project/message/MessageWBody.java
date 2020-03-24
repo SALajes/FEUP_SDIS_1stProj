@@ -1,4 +1,4 @@
-package message;
+package project.message;
 
 public class MessageWBody extends BaseMessage {
     //   BODY - for messages PUTCHUNK, CHUNK
