@@ -1,10 +1,14 @@
 package project;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import project.Channels.ControlChannel;
 import project.Channels.MulticastDataBackupChannel;
 import project.Channels.MulticastDataRecoveryChannel;
@@ -13,7 +17,6 @@ public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
 
     private static int id;
-    private static double protocol_version;
 
     private static String service_access_point;
 
@@ -37,7 +40,10 @@ public class Peer implements RemoteInterface {
         }
 
         try{
-            protocol_version = Double.parseDouble(args[0]);
+            if( Double.parseDouble(args[0]) != Macros.VERSION) {
+                System.out.println("version not recognize");
+            }
+
             id = Integer.parseInt(args[1]);
 
             //since we are using RMI transport protocol, then the access_point is <remote_object_name>
@@ -72,11 +78,22 @@ public class Peer implements RemoteInterface {
 
         System.out.println("It's communicating");
 
-        //encoded file name uses the file.lastModified() because files can be changed keeping the same name
+        //encoded file name uses the file.lastModified() that ensures that a modified file has a different fileId
         String file_name_to_encode = file_name + file.lastModified();
+
+        //identifier is obtained by applying SHA256, a cryptographic hash function, to some bit string.
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        byte[] hash = digest.digest(file_name_to_encode.getBytes(StandardCharsets.UTF_8));
+
 
         return 0;
     }
+
 
     /**
      *

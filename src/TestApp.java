@@ -8,10 +8,15 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class TestApp {
+
+    static void usage(){
+        System.err.println("usage: <peer_ap> <sub_protocol> <opnd_1> <opnd_2>");
+    }
+
     public static void main(String[] args) {
         //minimum args is 2 to retrieve the internal state of the peer
         if (args.length < 2) {
-            System.err.println("usage: <peer_ap> <sub_protocol> <opnd_1> <opnd_2>");
+            usage();
             System.exit(1);
         }
 
@@ -83,6 +88,7 @@ public class TestApp {
                     peer.retrieve_state();
                     break;
                 default:
+                    usage();
                     System.err.println("Expected sub_protocol to be BACKUP, RESTORE, DELETE, RECLAIM, STATE.");
                     System.err.println("But sub_protocol given "+ sub_protocol);
                     System.exit(-7);
