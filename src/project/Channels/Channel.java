@@ -20,4 +20,8 @@ public abstract class Channel implements Runnable {
     }
     @Override
     public abstract void run();
+
+    public void broadcast(byte[] message) {
+
+    }
 }

@@ -1,5 +1,11 @@
 package project.message;
 
+import project.InvalidFileException;
+import project.Macros;
+
+import javax.crypto.Mac;
+import java.util.Arrays;
+
 /**
  * fields common to all messages
  * Message used when message_type == DELETE
@@ -45,5 +51,60 @@ public class BaseMessage {
     public String getFile_id() {
         return file_id;
     }
+
+    /**
+     *
+     * @param message
+     * @param message_length
+     * @param start_position used because some message have 2 CRLF
+     * @return
+     */
+    public int getCRLFPosition(byte[] message, int message_length, int start_position) {
+
+        for (int i = start_position; i < message_length - 1; ++i) {
+            if (message[i] == Macros.CR && message[i + 1] == Macros.LF) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+
+    public static byte[][] splitInChunks(byte[] file_data) throws InvalidFileException {
+
+        byte[][] chunks_data;
+        if(file_data.length > Macros.FILE_MAX_SIZE) {
+            throw new InvalidFileException();
+        }
+
+        int needed_chunks = (int) Math.ceil((float) file_data.length / Macros.CHUNK_MAX_SIZE);
+        boolean needs_0_size_chunk = false;
+
+
+        if (file_data.length % Macros.CHUNK_MAX_SIZE == 0) {
+            needs_0_size_chunk = true;
+        }
+
+        // If the file size is a multiple of the chunk size, the last chunk has size 0.
+        if(needs_0_size_chunk) {
+            chunks_data = new byte[needed_chunks + 1][];
+            chunks_data[needed_chunks] = new byte[0];
+        } else {
+            chunks_data = new byte[needed_chunks][];
+        }
+
+        int current_position = 0;
+
+        for (int j = 0; j < needed_chunks; j++) {
+
+            int chunk_size = Math.min(Macros.CHUNK_MAX_SIZE, file_data.length - current_position);
+            chunks_data[j] = Arrays.copyOfRange(file_data, current_position, current_position + chunk_size);
+            current_position += Macros.CHUNK_MAX_SIZE;
+        }
+
+        return chunks_data;
+    }
+
 
 }
