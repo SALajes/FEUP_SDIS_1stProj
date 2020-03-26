@@ -1,4 +1,4 @@
-package project.Channels;
+package project.channel;
 
 public class MulticastDataBackupChannel extends Channel {
 

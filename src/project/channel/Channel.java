@@ -1,4 +1,4 @@
-package project.Channels;
+package project.channel;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
