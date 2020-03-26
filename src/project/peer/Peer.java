@@ -1,4 +1,4 @@
-package project;
+package project.peer;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -9,9 +9,11 @@ import java.rmi.server.UnicastRemoteObject;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import project.Channels.ControlChannel;
-import project.Channels.MulticastDataBackupChannel;
-import project.Channels.MulticastDataRecoveryChannel;
+import project.Macros;
+
+import project.channel.ControlChannel;
+import project.channel.MulticastDataBackupChannel;
+import project.channel.MulticastDataRecoveryChannel;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
@@ -75,6 +77,8 @@ public class Peer implements RemoteInterface {
     public int backup(String file_path, int replication_degree) throws RemoteException{
         File file = new File(file_path);
         String file_name = file.getName();
+
+        
 
         System.out.println("It's communicating");
 

@@ -1,5 +1,4 @@
-import project.Peer;
-import project.RemoteInterface;
+import project.peer.RemoteInterface;
 
 import java.rmi.AccessException;
 import java.rmi.NotBoundException;

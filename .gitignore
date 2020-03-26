@@ -1,6 +1,6 @@
 *.idea
 *.iml
-out
+out/
 .idea/
-
+*.class
 *.class

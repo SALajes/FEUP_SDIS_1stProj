@@ -1,18 +1,17 @@
 package project.message;
 
+import project.Macros;
+
 /**
  * fields common to all messages
- * Message used when message_type == DELETE
  */
-public class BaseMessage {
+public abstract class BaseMessage {
     //Header
-    private final String version;
-    private final Message_type message_type;
-    private final String sender_id;
-    private final String file_id;
-    //terminated with the sequence '0xD''0xA' '0xD''0xA' - <CRLF><CRLF>
-    public final static byte CR = 0xD;
-    public final static byte LF = 0xA;
+    protected final String version;
+    protected final Message_type message_type;
+    protected final String sender_id;
+    protected final String file_id;
+    protected String chunk;
 
     public enum Message_type {
         PUTCHUNK,
@@ -28,22 +27,15 @@ public class BaseMessage {
         this.message_type = message_type;
         this.sender_id = sender_id;
         this.file_id = file_id;
+        this.chunk = null;
     }
 
-    public String getVersion() {
-        return version;
+    public String get_header(){
+        return this.version + " " + this.message_type + " " + this.sender_id + " " + this.file_id;
     }
 
-    public Message_type getMessage_type() {
-        return message_type;
+    public byte[] convert_message(){
+        String message = get_header() + " " + Macros.CR + Macros.LF + Macros.CR + Macros.LF + this.chunk;
+        return message.getBytes();
     }
-
-    public String getSender_id() {
-        return sender_id;
-    }
-
-    public String getFile_id() {
-        return file_id;
-    }
-
 }
