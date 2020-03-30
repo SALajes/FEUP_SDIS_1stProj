@@ -9,4 +9,5 @@ public class Macros {
 
     // Given that each chunk is 64 KByte, this limits the size of the files to backup to 64 GByte.
     public static final int FILE_MAX_SIZE = 64000000;
+    public static final int MAX_NUMBER_CHUNKS = 1000000;
 }

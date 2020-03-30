@@ -1,8 +1,13 @@
 package project.chunk;
 
+import project.InvalidFileException;
+import project.Macros;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static java.util.Arrays.copyOfRange;
 
 public class ChunkFactory {
     private final File file;
@@ -15,10 +20,18 @@ public class ChunkFactory {
 
         chunks = new ArrayList<>();
 
-        produce_chunks();
+        try {
+            produce_chunks();
+        } catch (InvalidFileException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void produce_chunks() {
+    /**
+     * 
+     * @throws InvalidFileException
+     */
+    private void produce_chunks() throws InvalidFileException {
         int chunk_no = 0;
 
         byte[] buffer = new byte[Chunk.chunk_size];
@@ -26,12 +39,20 @@ public class ChunkFactory {
         try(BufferedInputStream stream = new BufferedInputStream(new FileInputStream(this.file))) {
             int size;
             while((size = stream.read(buffer)) > 0){
+                if(chunk_no <= Macros.MAX_NUMBER_CHUNKS) {
+                    throw new InvalidFileException("File is larger than accepted");
+                }
                 Chunk chunk = new Chunk(chunk_no, Arrays.copyOf(buffer, size), size);
                 this.chunks.add(chunk);
 
                 chunk_no++;
 
                 buffer = new byte[Chunk.chunk_size];
+            }
+            //check if needs 0 size chunk
+            if(chunks.get(chunks.size() - 1).size == Macros.CHUNK_MAX_SIZE) {
+                // If the file size is a multiple of the chunk size, the last chunk has size 0.
+                this.chunks.add(new Chunk(chunks.size(), new byte[0], 0));
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -40,6 +61,11 @@ public class ChunkFactory {
         }
     }
 
+    /**
+     *
+     * @return
+     * chunks
+     */
     public ArrayList<Chunk> get_chunks(){
         return chunks;
     }

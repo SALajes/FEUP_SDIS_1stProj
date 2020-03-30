@@ -28,6 +28,12 @@ public class MessageDealer {
         return -1;
     }
 
+    /**
+     *
+     * @param header
+     * @return
+     * @throws InvalidMessageException
+     */
     public List<String> getMessageHeaderFields( String header) throws InvalidMessageException {
         List<String> header_fields = Arrays.asList(header.split(" "));
 
@@ -38,6 +44,13 @@ public class MessageDealer {
         return header_fields;
     }
 
+    /**
+     *
+     * @param message
+     * @param message_length
+     * @param first_CRLF_position
+     * @return
+     */
     public byte[] getMessageBody(byte[] message, int message_length, int first_CRLF_position){
         int second_CRLF_position = getCRLFPosition(message, message_length, first_CRLF_position + 2);
         //if CRLF is not found Message is Invalid
@@ -53,6 +66,13 @@ public class MessageDealer {
         return copyOfRange(message, first_CRLF_position + 2, second_CRLF_position);
     }
 
+    /**
+     *
+     * @param message
+     * @param message_length
+     * @return
+     * @throws InvalidMessageException
+     */
     public BaseMessage parseFields(byte[] message, int message_length) throws InvalidMessageException {
         //The last header line is always an empty line, i.e. the <CRLF> ASCII character sequence
         int first_CRLF_position = getCRLFPosition(message, message_length, 0);
@@ -121,39 +141,5 @@ public class MessageDealer {
 
     }
 
-
-    public byte[][] splitInChunks(byte[] file_data) throws InvalidFileException {
-
-        if(file_data.length > Macros.FILE_MAX_SIZE) {
-            throw new InvalidFileException();
-        }
-
-        int needed_chunks = (int) Math.ceil((float) file_data.length / Macros.CHUNK_MAX_SIZE);
-        boolean needs_0_size_chunk = false;
-        byte[][] chunks_data;
-
-        if (file_data.length % Macros.CHUNK_MAX_SIZE == 0) {
-            needs_0_size_chunk = true;
-        }
-
-        // If the file size is a multiple of the chunk size, the last chunk has size 0.
-        if(needs_0_size_chunk) {
-            chunks_data = new byte[needed_chunks + 1][];
-            chunks_data[needed_chunks] = new byte[0];
-        } else {
-            chunks_data = new byte[needed_chunks][];
-        }
-
-        int current_position = 0;
-
-        for (int j = 0; j < needed_chunks; j++) {
-
-            int chunk_size = Math.min(Macros.CHUNK_MAX_SIZE, file_data.length - current_position);
-            chunks_data[j] = copyOfRange(file_data, current_position, current_position + chunk_size);
-            current_position += Macros.CHUNK_MAX_SIZE;
-        }
-
-        return chunks_data;
-    }
 
 }
