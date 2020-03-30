@@ -28,13 +28,13 @@ public class ChunkFactory {
     }
 
     /**
-     * 
+     *
      * @throws InvalidFileException
      */
     private void produce_chunks() throws InvalidFileException {
         int chunk_no = 0;
 
-        byte[] buffer = new byte[Chunk.chunk_size];
+        byte[] buffer = new byte[Macros.CHUNK_MAX_SIZE];
 
         try(BufferedInputStream stream = new BufferedInputStream(new FileInputStream(this.file))) {
             int size;
@@ -47,7 +47,7 @@ public class ChunkFactory {
 
                 chunk_no++;
 
-                buffer = new byte[Chunk.chunk_size];
+                buffer = new byte[Macros.CHUNK_MAX_SIZE];
             }
             //check if needs 0 size chunk
             if(chunks.get(chunks.size() - 1).size == Macros.CHUNK_MAX_SIZE) {

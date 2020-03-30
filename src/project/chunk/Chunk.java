@@ -1,8 +1,6 @@
 package project.chunk;
 
 public class Chunk {
-    public final static int chunk_size = 64000;
-
     final int chunk_no;
     final byte[] content;
     final int size;
