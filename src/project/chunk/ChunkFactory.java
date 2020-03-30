@@ -62,7 +62,7 @@ public class ChunkFactory {
         try(BufferedInputStream stream = new BufferedInputStream(new FileInputStream(this.file))) {
             int size;
             while((size = stream.read(buffer)) > 0){
-                if(chunk_no <= Macros.MAX_NUMBER_CHUNKS) {
+                if(chunk_no >= Macros.MAX_NUMBER_CHUNKS) {
                     throw new InvalidFileException("File is larger than accepted");
                 }
                 Chunk chunk = new Chunk(chunk_no, file_id, Arrays.copyOf(buffer, size), size);
