@@ -20,7 +20,7 @@ public class ChunkFactory {
 
     public ChunkFactory(File file, int replication_degree) {
         this.file = file;
-        getFileId();
+        setFileId();
         this.replication_degree = replication_degree;
 
         chunks = new ArrayList<>();
@@ -32,7 +32,7 @@ public class ChunkFactory {
         }
     }
 
-    public String getFileId() {
+    public void setFileId() {
 
         String file_name = this.file.getName();
 
@@ -47,7 +47,11 @@ public class ChunkFactory {
             e.printStackTrace();
         }
         byte[] hash = digest.digest(file_name_to_encode.getBytes(StandardCharsets.UTF_8));
-        return String.valueOf(hash);
+        file_id = String.valueOf(hash);
+    }
+
+    public String getFile_id() {
+        return file_id;
     }
 
     /**

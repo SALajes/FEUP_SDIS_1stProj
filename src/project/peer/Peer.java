@@ -1,20 +1,18 @@
 package project.peer;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
+
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+
 
 import project.Macros;
 
-import project.channel.ControlChannel;
-import project.channel.MulticastDataBackupChannel;
-import project.channel.MulticastDataRecoveryChannel;
+import project.channel.*;
 import project.chunk.ChunkFactory;
+import project.files.BackupFiles;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
@@ -77,11 +75,18 @@ public class Peer implements RemoteInterface {
      */
     public int backup(String file_path, int replication_degree) throws RemoteException{
         System.out.println("It's communicating");
+
         ClassLoader cl = getClass().getClassLoader();
-        File file = new File(cl.getResource("Test/test.txt").getFile());
-        System.out.println("Get file");
+        File file = new File(cl.getResource(file_path).getFile());
+
+        System.out.println("File exists");
+
         //gets chunks
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
+
+        //register file on existing files
+        BackupFiles.add_file(file_path, chunkFactory.getFile_id());
+
         return 0;
     }
 
@@ -94,6 +99,10 @@ public class Peer implements RemoteInterface {
      */
     @Override
     public int restore(String file_path) throws RemoteException {
+
+        final String file_name = new File(file_path).getName();
+
+        BackupFiles.check_if_file_exists(file_path);
         return 0;
     }
 
