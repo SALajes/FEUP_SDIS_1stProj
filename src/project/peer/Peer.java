@@ -77,7 +77,9 @@ public class Peer implements RemoteInterface {
      */
     public int backup(String file_path, int replication_degree) throws RemoteException{
         System.out.println("It's communicating");
-        File file = new File(file_path);
+        ClassLoader cl = getClass().getClassLoader();
+        File file = new File(cl.getResource("Test/test.txt").getFile());
+        System.out.println("Get file");
         //gets chunks
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
         return 0;
