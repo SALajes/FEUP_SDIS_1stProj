@@ -3,9 +3,10 @@ package project.message;
 import project.InvalidFileException;
 import project.Macros;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static java.util.Arrays.copyOfRange;
 
 public class MessageDealer {
 
@@ -37,13 +38,27 @@ public class MessageDealer {
         return header_fields;
     }
 
+    public byte[] getMessageBody(byte[] message, int message_length, int first_CRLF_position){
+        int second_CRLF_position = getCRLFPosition(message, message_length, first_CRLF_position + 2);
+        //if CRLF is not found Message is Invalid
+        if (second_CRLF_position == -1 ) {
+            try {
+                throw new InvalidMessageException();
+            } catch (InvalidMessageException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //public static int[] copyOfRange(int[] original_array, int from_index, int to_index)
+        return copyOfRange(message, first_CRLF_position + 2, second_CRLF_position);
+    }
+
     public BaseMessage parseFields(byte[] message, int message_length) throws InvalidMessageException {
         //The last header line is always an empty line, i.e. the <CRLF> ASCII character sequence
         int first_CRLF_position = getCRLFPosition(message, message_length, 0);
         if (first_CRLF_position < 0) {
             throw new InvalidMessageException();
         }
-
 
         List<String> message_header = getMessageHeaderFields(new String(message, 0, first_CRLF_position));
         if(Double.parseDouble(message_header.get(0)) != Macros.VERSION) {
@@ -57,7 +72,7 @@ public class MessageDealer {
                         message_header.get(2), //sender_id
                         message_header.get(3), //file_id
                         Integer.parseInt(message_header.get(4)), //chunk_no
-                        message, //TODO only send body
+                        getMessageBody(message, message_length, first_CRLF_position), //only send body
                         Integer.parseInt(message_header.get(4)) //replication_dregree
                 );
             case STORED:
@@ -82,7 +97,7 @@ public class MessageDealer {
                         message_header.get(2), //sender_id
                         message_header.get(3), //file_id
                         Integer.parseInt(message_header.get(4)), //chunk_no
-                        message //TODO only send body
+                        getMessageBody(message, message_length, first_CRLF_position) //only send body
                 );
             case DELETE:
                 return new DeleteMessage(
@@ -134,7 +149,7 @@ public class MessageDealer {
         for (int j = 0; j < needed_chunks; j++) {
 
             int chunk_size = Math.min(Macros.CHUNK_MAX_SIZE, file_data.length - current_position);
-            chunks_data[j] = Arrays.copyOfRange(file_data, current_position, current_position + chunk_size);
+            chunks_data[j] = copyOfRange(file_data, current_position, current_position + chunk_size);
             current_position += Macros.CHUNK_MAX_SIZE;
         }
 
