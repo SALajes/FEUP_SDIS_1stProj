@@ -2,6 +2,7 @@ package project.chunk;
 
 import project.InvalidFileException;
 import project.Macros;
+import project.files.AllFiles;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +31,9 @@ public class ChunkFactory {
         } catch (InvalidFileException e) {
             e.printStackTrace();
         }
+
+        //register file on existing files
+        AllFiles.getAllFiles().addFile(file.getName(), file_id);
     }
 
     public void setFileId() {

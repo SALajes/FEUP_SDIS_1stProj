@@ -12,7 +12,7 @@ import project.Macros;
 
 import project.channel.*;
 import project.chunk.ChunkFactory;
-import project.files.BackupFiles;
+import project.files.AllFiles;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
@@ -84,8 +84,7 @@ public class Peer implements RemoteInterface {
         //gets chunks
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
 
-        //register file on existing files
-        BackupFiles.add_file(file_path, chunkFactory.getFile_id());
+
 
         return 0;
     }
@@ -102,7 +101,13 @@ public class Peer implements RemoteInterface {
 
         final String file_name = new File(file_path).getName();
 
-        BackupFiles.check_if_file_exists(file_path);
+        if(AllFiles.getAllFiles().getFileId(file_name) == null) {
+            System.err.println("A file with that name wasn't found, cannot restore a file that was't been backup by this peer");
+            return -1;
+        }
+
+        //Restore
+
         return 0;
     }
 
@@ -114,6 +119,24 @@ public class Peer implements RemoteInterface {
      */
     @Override
     public int delete(String file_path) throws RemoteException {
+
+        //a peer should remove from its backing store all chunks belonging to the specified file.
+        final String file_name = new File(file_path).getName();
+
+        //gets the file_id from the entry with key file_name form allFiles
+        final String file_id = AllFiles.getAllFiles().getFileId(file_name);
+
+        if (file_id == null) {
+            System.err.println("File name was't find, cannot delete file that wasn't been backup");
+            System.exit(-1);
+        }
+
+        //TODO delete chunks
+
+        // Remove entry with the file_name and correspond file_id from allFiles
+        AllFiles.getAllFiles().removeFile(file_name);
+
+
         return 0;
     }
 
