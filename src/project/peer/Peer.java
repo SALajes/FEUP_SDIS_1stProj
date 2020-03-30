@@ -14,6 +14,7 @@ import project.Macros;
 import project.channel.ControlChannel;
 import project.channel.MulticastDataBackupChannel;
 import project.channel.MulticastDataRecoveryChannel;
+import project.chunk.ChunkFactory;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
@@ -75,26 +76,10 @@ public class Peer implements RemoteInterface {
      * The client shall specify the file pathname and the desired replication degree.
      */
     public int backup(String file_path, int replication_degree) throws RemoteException{
-        File file = new File(file_path);
-        String file_name = file.getName();
-
-        
-
         System.out.println("It's communicating");
-
-        //encoded file name uses the file.lastModified() that ensures that a modified file has a different fileId
-        String file_name_to_encode = file_name + file.lastModified();
-
-        //identifier is obtained by applying SHA256, a cryptographic hash function, to some bit string.
-        MessageDigest digest = null;
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        byte[] hash = digest.digest(file_name_to_encode.getBytes(StandardCharsets.UTF_8));
-
-
+        File file = new File(file_path);
+        //gets chunks
+        ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
         return 0;
     }
 
