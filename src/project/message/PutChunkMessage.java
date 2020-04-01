@@ -6,7 +6,7 @@ public class PutChunkMessage extends BaseMessage {
     private final int chunk_no;
     private final int replication_degree;
 
-    public PutChunkMessage(String version, String sender_id, String file_id, int chunk_no, int replication_degree, byte[] chunk) {
+    public PutChunkMessage(double version, int sender_id, String file_id, int chunk_no, int replication_degree, byte[] chunk) {
         super(version, Message_type.PUTCHUNK, sender_id, file_id);
 
         this.chunk_no = chunk_no;

@@ -12,10 +12,13 @@ import project.Macros;
 
 import project.channel.*;
 import project.chunk.ChunkFactory;
+import project.protocols.BackupProtocol;
 import project.store.Store;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
+
+    private static double version;
 
     public static int id;
 
@@ -41,8 +44,10 @@ public class Peer implements RemoteInterface {
         }
 
         try{
-            if( Double.parseDouble(args[0]) != Macros.VERSION) {
-                System.out.println("version not recognize");
+            version = Double.parseDouble(args[0]);
+            //fiquei confusa, nao e suposto ser o peer a definir a sua versao?
+            if( version != Macros.VERSION) {
+                System.out.println("Not default version");
             }
 
             id = Integer.parseInt(args[1]);
@@ -77,9 +82,11 @@ public class Peer implements RemoteInterface {
 
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
 
-        Store.getStore().addFile(file.getName(), Store.createFileId(file));
+        String file_id = Store.createFileId(file);
 
+        Store.getStore().addFile(file.getName(), file_id);
 
+        BackupProtocol.send_putchunk(this.version, Peer.id, replication_degree, file_id, chunkFactory.get_chunks());
 
         return 0;
     }
