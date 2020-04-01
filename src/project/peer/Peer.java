@@ -12,22 +12,22 @@ import project.Macros;
 
 import project.channel.*;
 import project.chunk.ChunkFactory;
-import project.files.AllFiles;
+import project.store.Store;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
 
-    private static int id;
+    public static int id;
 
     private static String service_access_point;
 
     //Addresses, ports and InetAdress of each channel
-    private static ControlChannel MC;
-    private static MulticastDataBackupChannel MDB;
-    private static MulticastDataRecoveryChannel MDR;
+    public static MulticastControlChannel MC;
+    public static MulticastDataBackupChannel MDB;
+    public static MulticastDataRecoveryChannel MDR;
 
     public Peer(String MC_address, int MC_port, String MDB_address, int MDB_port, String MDR_address, int MDR_port) throws RemoteException {
-        MC = new ControlChannel(MC_address, MC_port);
+        MC = new MulticastControlChannel(MC_address, MC_port);
         MDB = new MulticastDataBackupChannel(MDB_address, MDB_port);
         MDR = new MulticastDataRecoveryChannel(MDR_address, MDR_port);
     }
@@ -35,7 +35,7 @@ public class Peer implements RemoteInterface {
     //class methods
     public static void main(String[] args){
         if(args.length != 9){
-            System.out.println("Usage: [project.]Peer <protocol_version> <peer_id> <service_access_point> " +
+            System.out.println("Usage: [package]Peer <protocol_version> <peer_id> <service_access_point> " +
                     "<MC_address> <MC_port> <MDB_address> <MDB_port> <MDR_address> <MDR_port>");
             return;
         }
@@ -56,10 +56,8 @@ public class Peer implements RemoteInterface {
             Registry registry = LocateRegistry.createRegistry(RegistryPort);
             registry.rebind(service_access_point, stub);
 
-            System.out.println("project.Peer ready");
-
         } catch (Exception e) {
-            System.err.println("project.Peer exception: " + e.toString());
+            System.err.println("Peer exception: " + e.toString());
             e.printStackTrace();
             return;
         }
@@ -74,15 +72,12 @@ public class Peer implements RemoteInterface {
      * The client shall specify the file pathname and the desired replication degree.
      */
     public int backup(String file_path, int replication_degree) throws RemoteException{
-        System.out.println("It's communicating");
+        System.out.println(file_path);
+        File file = new File(file_path);
 
-        ClassLoader cl = getClass().getClassLoader();
-        File file = new File(cl.getResource(file_path).getFile());
-
-        System.out.println("File exists");
-
-        //gets chunks
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
+
+        Store.getStore().addFile(file.getName(), Store.createFileId(file));
 
 
 
@@ -101,7 +96,7 @@ public class Peer implements RemoteInterface {
 
         final String file_name = new File(file_path).getName();
 
-        if(AllFiles.getAllFiles().getFileId(file_name) == null) {
+        if(Store.getStore().getFiles(file_name) == null) {
             System.err.println("A file with that name wasn't found, cannot restore a file that was't been backup by this peer");
             return -1;
         }
@@ -124,7 +119,7 @@ public class Peer implements RemoteInterface {
         final String file_name = new File(file_path).getName();
 
         //gets the file_id from the entry with key file_name form allFiles
-        final String file_id = AllFiles.getAllFiles().getFileId(file_name);
+        final String file_id = Store.getStore().getFiles(file_name);
 
         if (file_id == null) {
             System.err.println("File name was't find, cannot delete file that wasn't been backup");
@@ -134,7 +129,7 @@ public class Peer implements RemoteInterface {
         //TODO delete chunks
 
         // Remove entry with the file_name and correspond file_id from allFiles
-        AllFiles.getAllFiles().removeFile(file_name);
+        Store.getStore().removeFile(file_name);
 
 
         return 0;

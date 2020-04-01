@@ -1,3 +1,5 @@
+package project;
+
 import project.peer.RemoteInterface;
 
 import java.rmi.AccessException;
@@ -62,7 +64,7 @@ public class TestApp {
                 case "DELETE":
                     if (args.length != 3) {
                         System.err.println("Expected 3 arguments, given" + args.length);
-                        System.err.println("Usage: java TestApp <peer_ap> DELETE <file_path>");
+                        System.err.println("Usage: java project.TestApp <peer_ap> DELETE <file_path>");
                         System.exit(-4);
                     }
                     //delete that file
@@ -71,7 +73,7 @@ public class TestApp {
                 case "RECLAIM":
                     if (args.length != 3) {
                         System.err.println("Expected 3 arguments, given" + args.length);
-                        System.err.println("Usage: java TestApp <peer_ap> RECLAIM <maximum_disk_space_in_KBytes>");
+                        System.err.println("Usage: java project.TestApp <peer_ap> RECLAIM <maximum_disk_space_in_KBytes>");
                         System.exit(-5);
                     }
                     // reclaim all the disk space being used by the service,
@@ -80,7 +82,7 @@ public class TestApp {
                 case "STATE":
                     if (args.length != 2) {
                         System.err.println("Expected 2 arguments, given" + args.length);
-                        System.err.println("Usage: java TestApp <peer_ap> STATE");
+                        System.err.println("Usage: java project.TestApp <peer_ap> STATE");
                         System.exit(-6);
                     }
                     //retrieve the internal state of the peer

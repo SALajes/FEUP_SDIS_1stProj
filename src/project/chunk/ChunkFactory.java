@@ -2,7 +2,7 @@ package project.chunk;
 
 import project.InvalidFileException;
 import project.Macros;
-import project.files.AllFiles;
+import project.store.Store;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -15,13 +15,11 @@ import static java.util.Arrays.copyOfRange;
 
 public class ChunkFactory {
     private final File file;
-    private String file_id;
     private final int replication_degree;
     private ArrayList<Chunk> chunks;
 
     public ChunkFactory(File file, int replication_degree) {
         this.file = file;
-        setFileId();
         this.replication_degree = replication_degree;
 
         chunks = new ArrayList<>();
@@ -31,31 +29,6 @@ public class ChunkFactory {
         } catch (InvalidFileException e) {
             e.printStackTrace();
         }
-
-        //register file on existing files
-        AllFiles.getAllFiles().addFile(file.getName(), file_id);
-    }
-
-    public void setFileId() {
-
-        String file_name = this.file.getName();
-
-        //encoded file name uses the file.lastModified() that ensures that a modified file has a different fileId
-        String file_name_to_encode = file_name + this.file.lastModified();
-
-        //identifier is obtained by applying SHA256, a cryptographic hash function, to some bit string.
-        MessageDigest digest = null;
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        byte[] hash = digest.digest(file_name_to_encode.getBytes(StandardCharsets.UTF_8));
-        file_id = String.valueOf(hash);
-    }
-
-    public String getFile_id() {
-        return file_id;
     }
 
     /**
@@ -73,7 +46,7 @@ public class ChunkFactory {
                 if(chunk_no >= Macros.MAX_NUMBER_CHUNKS) {
                     throw new InvalidFileException("File is larger than accepted");
                 }
-                Chunk chunk = new Chunk(chunk_no, file_id, Arrays.copyOf(buffer, size), size);
+                Chunk chunk = new Chunk(chunk_no, Arrays.copyOf(buffer, size), size);
                 this.chunks.add(chunk);
 
                 chunk_no++;
@@ -83,7 +56,7 @@ public class ChunkFactory {
             //check if needs 0 size chunk
             if(chunks.get(chunks.size() - 1).size == Macros.CHUNK_MAX_SIZE) {
                 // If the file size is a multiple of the chunk size, the last chunk has size 0.
-                this.chunks.add(new Chunk(chunks.size(), file_id, new byte[0], 0));
+                this.chunks.add(new Chunk(chunks.size(), new byte[0], 0));
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

@@ -8,15 +8,13 @@ import java.util.Arrays;
 /**
  * fields common to all messages
  */
-public class BaseMessage {
+public abstract class BaseMessage {
     //Header
     private final String version;
     private final Message_type message_type;
     private final String sender_id;
     private final String file_id;
     protected String chunk;
-
-
 
     public BaseMessage(String version, Message_type message_type, String sender_id, String file_id) {
         this.version = version;
