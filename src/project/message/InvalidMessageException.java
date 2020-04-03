@@ -6,8 +6,8 @@ package project.message;
 public class InvalidMessageException extends Exception {
     private String message;
 
-    public void InvalidMessage(String message) {
-        this.setMessage(message);
+    public InvalidMessageException(String message) {
+        this.message = message;
     }
 
     public String getMessage() {
