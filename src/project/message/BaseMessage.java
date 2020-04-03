@@ -29,7 +29,7 @@ public abstract class BaseMessage {
     }
 
     public byte[] convert_message(){
-        String message = get_header() + " " + Macros.CR + Macros.LF + Macros.CR + Macros.LF + this.chunk;
+        String message = get_header() + " " + Macros.CR + Macros.LF + Macros.CR + Macros.LF + (this.chunk == null ? "" : this.chunk);
         return message.getBytes();
     }
 
@@ -50,9 +50,5 @@ public abstract class BaseMessage {
         return file_id;
     }
 
-
-
-
-
-
+    public String getChunk(){ return chunk; }
 }

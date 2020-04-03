@@ -1,6 +1,7 @@
 package project.channel;
 
 import project.message.*;
+import project.peer.Peer;
 import project.protocols.BackupProtocol;
 import project.protocols.DeleteProtocol;
 import project.protocols.ReclaimProtocol;
@@ -17,14 +18,17 @@ public class MulticastControlChannel extends Channel {
     @Override
     public void readable_message(DatagramPacket packet) {
         String raw_message = new String(packet.getData(), 0, packet.getData().length);
-        Message_type type = Message_type.NO_TYPE;
 
         try {
-            BaseMessage message = MessageParser.parseMessage(raw_message, type);
+            BaseMessage message = MessageParser.parseMessage(raw_message);
 
-            switch (type) {
+            if(message.getSender_id() == Peer.id){
+                return;
+            }
+
+            switch (message.getMessage_type()) {
                 case STORED:
-                    BackupProtocol.receive_store(message);
+                    BackupProtocol.receive_stored((StoredMessage) message);
                     break;
                 case GETCHUNK:
                     RestoreProtocol.receive_getchunk(message);
@@ -34,6 +38,9 @@ public class MulticastControlChannel extends Channel {
                     break;
                 case REMOVED:
                     ReclaimProtocol.receive_removed(message);
+                    break;
+                default:
+                    System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());
                     break;
             }
         } catch (InvalidMessageException e) {

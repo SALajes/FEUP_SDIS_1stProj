@@ -6,14 +6,15 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.UUID;
 
 
 import project.Macros;
 
 import project.channel.*;
 import project.chunk.ChunkFactory;
+import project.message.InvalidMessageException;
 import project.protocols.BackupProtocol;
-import project.store.FilesListing;
 import project.store.Store;
 
 public class Peer implements RemoteInterface {
@@ -34,12 +35,14 @@ public class Peer implements RemoteInterface {
         MC = new MulticastControlChannel(MC_address, MC_port);
         MDB = new MulticastDataBackupChannel(MDB_address, MDB_port);
         MDR = new MulticastDataRecoveryChannel(MDR_address, MDR_port);
+
+        id = UUID.randomUUID().hashCode();
     }
 
     //class methods
     public static void main(String[] args){
-        if(args.length != 9){
-            System.out.println("Usage: [package]Peer <protocol_version> <peer_id> <service_access_point> " +
+        if(args.length != 8){
+            System.out.println("Usage: [package]Peer <protocol_version> <service_access_point> " +
                     "<MC_address> <MC_port> <MDB_address> <MDB_port> <MDR_address> <MDR_port>");
             return;
         }
@@ -51,41 +54,47 @@ public class Peer implements RemoteInterface {
                 System.out.println("Not default version");
             }
 
-            id = Integer.parseInt(args[1]);
-
             //since we are using RMI transport protocol, then the access_point is <remote_object_name>
-            service_access_point = args[2];
+            service_access_point = args[1];
 
-            Peer object_peer = new Peer(args[3], Integer.parseInt(args[4]), args[5], Integer.parseInt(args[6]), args[7], Integer.parseInt(args[8]));
+            Peer object_peer = new Peer(args[2], Integer.parseInt(args[3]), args[4], Integer.parseInt(args[5]), args[6], Integer.parseInt(args[7]));
             RemoteInterface stub = (RemoteInterface) UnicastRemoteObject.exportObject(object_peer, 0);
 
-            Registry registry = LocateRegistry.createRegistry(RegistryPort);
+            Registry registry;
+            try {
+                registry = LocateRegistry.createRegistry(RegistryPort);
+            }catch (RemoteException e){
+                registry = LocateRegistry.getRegistry(RegistryPort);
+            }
+
             registry.rebind(service_access_point, stub);
+
+            new Thread(MC).start();
+            new Thread(MDB).start();
+            new Thread(MDR).start();
+
+            System.out.println("Peer ready");
 
         } catch (Exception e) {
             System.err.println("Peer exception: " + e.toString());
             e.printStackTrace();
             return;
         }
-    } //TO-DO: THREAD POOL PARA MC, MDB E MDR
+    }
 
+    public int backup(String file_path, int replication_degree) throws RemoteException, InvalidMessageException {
+        if(replication_degree <= 0 || replication_degree > 9)
+            throw new InvalidMessageException("Replication degree is invalid");
 
-    /**
-     *
-     * @param file_path
-     * @param replication_degree
-     * @throws RemoteException
-     * The client shall specify the file pathname and the desired replication degree.
-     */
-    public int backup(String file_path, int replication_degree) throws RemoteException{
-        System.out.println(file_path);
+        System.out.println("Backup file: "+ file_path);
+
         File file = new File(file_path);
 
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
 
-        String file_id = Store.createFileId(file);
+        String file_id = Store.getInstance().createFileId(file);
 
-        FilesListing.get_files_Listing().putFile(file.getName(), file_id);
+        Store.getInstance().addFile(file.getName(), file_id);
 
         BackupProtocol.send_putchunk(this.version, Peer.id, replication_degree, file_id, chunkFactory.get_chunks());
 
@@ -104,7 +113,7 @@ public class Peer implements RemoteInterface {
 
         final String file_name = new File(file_path).getName();
 
-        if(FilesListing.get_files_Listing().get_file_id(file_name) == null) {
+        if(Store.getInstance().getFile(file_name) == null) {
             System.err.println("A file with that name wasn't found, cannot restore a file that was't been backup by this peer");
             return -1;
         }
@@ -127,7 +136,7 @@ public class Peer implements RemoteInterface {
         final String file_name = new File(file_path).getName();
 
         //gets the file_id from the entry with key file_name form allFiles
-        final String file_id = FilesListing.get_files_Listing().get_file_id(file_name) ;
+        final String file_id = Store.getInstance().getFile(file_name);
 
         if (file_id == null) {
             System.err.println("File name was't find, cannot delete file that wasn't been backup");
@@ -137,8 +146,7 @@ public class Peer implements RemoteInterface {
         //TODO delete chunks
 
         // Remove entry with the file_name and correspond file_id from allFiles
-        FilesListing.get_files_Listing().delete_file_record(file_name);
-
+        Store.getInstance().removeFile(file_name);
 
 
         return 0;

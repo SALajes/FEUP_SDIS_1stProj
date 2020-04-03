@@ -1,5 +1,6 @@
 package project;
 
+import project.message.InvalidMessageException;
 import project.peer.RemoteInterface;
 
 import java.rmi.AccessException;
@@ -99,6 +100,8 @@ public class TestApp {
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (InvalidMessageException e) {
             e.printStackTrace();
         }
     }
