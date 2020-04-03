@@ -15,4 +15,8 @@ public class StoredMessage extends BaseMessage {
     public String get_header(){
         return super.get_header() + " " + chunk_no;
     }
+
+    public int getChunk_no(){
+        return chunk_no;
+    }
 }

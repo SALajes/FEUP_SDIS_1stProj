@@ -19,7 +19,7 @@ public class MessageParser {
 
         //Shortest header is "<Version> DELETE <SenderId> <FileId> <CRLF><CRLF>"
         if (header_fields.size() <= 4) {
-            throw new InvalidMessageException();
+            throw new InvalidMessageException("Invalid header");
         }
         return header_fields;
     }
@@ -30,7 +30,7 @@ public class MessageParser {
      * @return
      * @throws InvalidMessageException
      */
-    public static BaseMessage parseMessage(String message, Message_type type) throws InvalidMessageException {
+    public static BaseMessage parseMessage(String message) throws InvalidMessageException {
         message = message.trim();
 
         String terminal = "" + Macros.CR + Macros.LF + Macros.CR + Macros.LF;
@@ -39,10 +39,10 @@ public class MessageParser {
         List<String> message_header = getMessageHeaderFields(header_body[0]);
 
         if(Double.parseDouble(message_header.get(0)) != Macros.VERSION) {
-            throw new InvalidMessageException();
+            throw new InvalidMessageException("Incorrect version");
         }
 
-        type = Message_type.valueOf(message_header.get(1));
+        Message_type type = Message_type.valueOf(message_header.get(1));
 
         switch (type) {
             case PUTCHUNK:
@@ -91,7 +91,7 @@ public class MessageParser {
                         Integer.parseInt(message_header.get(4).trim()) //chunk_no
                 );
             default:
-                    throw new InvalidMessageException();
+                    throw new InvalidMessageException("Invalid message: " + message);
 
         }
 

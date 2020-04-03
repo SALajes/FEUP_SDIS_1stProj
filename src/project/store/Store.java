@@ -4,48 +4,51 @@ import project.Macros;
 import project.chunk.Chunk;
 import project.peer.Peer;
 
-import javax.rmi.ssl.SslRMIClientSocketFactory;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Store {
-
-    private static Store store = new Store();
+    private static Store store = null;
 
     private static Hashtable<String, String> files = new Hashtable<>();
     private static Hashtable<String, Chunk> stored_chunks = new Hashtable<>();
     private static Hashtable<String, String> restored_files = new Hashtable<>();
+    private static ConcurrentHashMap<String, ArrayList<Integer>> backup_chunks_occurrences = new ConcurrentHashMap<>();
 
     private static String peer_directory_path;
     private static String files_directory_path;
-    private static String backup_directory_path;
+    private static String stored_directory_path;
     private static String restored_directory_path;
 
     private int space_with_storage = 0; //in bytes
     private Integer space_allow = -1; //Initial there isn't restrictions of space
 
-    public Store() {
-        initializeStore();
-    }
-
     /**
      * creates the four needed directory
      */
-    public void initializeStore(){
-
+    private Store(){
         //setting the directory name
         peer_directory_path = Peer.id + "_directory/";
         files_directory_path = peer_directory_path + "files/";
-        backup_directory_path = peer_directory_path + "stored/";
+        stored_directory_path = peer_directory_path + "stored/";
         restored_directory_path = peer_directory_path + "restored/";
 
         create_directory(peer_directory_path);
         create_directory(files_directory_path);
-        create_directory(backup_directory_path);
+        create_directory(stored_directory_path);
         create_directory(restored_directory_path);
+    }
+
+    public static Store getInstance(){
+        if(store == null)
+            store = new Store();
+
+        return store;
     }
 
     /**
@@ -67,20 +70,7 @@ public class Store {
         return true;
     }
 
-    /**
-     *
-     * @return store instance
-     */
-    public static Store getStore(){
-        return store;
-    }
-
-    /**
-     * Method used to get the Hash map with the existing files
-     * @param file_name name of the file
-     * @return existing files HashMap
-     */
-    public static String getFiles(String file_name) {
+    public static String getFile(String file_name) {
         return files.get(file_name);
     }
 
@@ -90,9 +80,6 @@ public class Store {
      * @param file_id encoded
      */
     public static void addFile(String file_name, String file_id) {
-        if(getStore() != null ) {
-            System.out.println("Other version detected, storing new by replacing");
-        }
         files.put(file_name, file_id);
     }
 
@@ -170,7 +157,7 @@ public class Store {
             return false;
         }
 
-        String chunk_dir =  this.backup_directory_path + "/" + file_id + "/";
+        String chunk_dir =  this.stored_directory_path + "/" + file_id + "/";
 
         // Idempotent Method
         create_directory(chunk_dir);
@@ -297,7 +284,7 @@ public class Store {
         }
 
         //chunk will be in backup_directory/file_id/chunk_no
-        String chunk_dir =  backup_directory_path + "/" + file_id + "/"+ chunk_number;
+        String chunk_dir =  stored_directory_path + "/" + file_id + "/"+ chunk_number;
 
         File chunk_file = new File(chunk_dir);
 
@@ -312,5 +299,29 @@ public class Store {
         }
 
         return false;
+    }
+
+    public void add_Backup_chunks_occurrences(String chunk_id, int peer_id) {
+        if(this.backup_chunks_occurrences.contains(chunk_id)){
+            ArrayList<Integer> peer_ids = this.backup_chunks_occurrences.get(chunk_id);
+
+            if(peer_ids.contains(peer_id))
+                return;
+
+            peer_ids.add(peer_id);
+            this.backup_chunks_occurrences.replace(chunk_id, peer_ids);
+        }else{
+            ArrayList<Integer> peer_ids = new ArrayList<>();
+            peer_ids.add(peer_id);
+            this.backup_chunks_occurrences.put(chunk_id, peer_ids);
+        }
+    }
+
+    public int checkSize_backup_chunks_occurrences(String chunk_id) {
+        return this.backup_chunks_occurrences.get(chunk_id).size();
+    }
+
+    public void remove_Backup_chunks_occurrences(String chunk_id) {
+        this.backup_chunks_occurrences.remove(chunk_id);
     }
 }
