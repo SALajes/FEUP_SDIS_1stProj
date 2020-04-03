@@ -19,7 +19,7 @@ public class MessageParser {
 
         //Shortest header is "<Version> DELETE <SenderId> <FileId> <CRLF><CRLF>"
         if (header_fields.size() <= 4) {
-            throw new InvalidMessageException();
+            throw new InvalidMessageException("Wrong number od arguments");
         }
         return header_fields;
     }
@@ -39,7 +39,7 @@ public class MessageParser {
         List<String> message_header = getMessageHeaderFields(header_body[0]);
 
         if(Double.parseDouble(message_header.get(0)) != Macros.VERSION) {
-            throw new InvalidMessageException();
+            throw new InvalidMessageException("Unknown version");
         }
 
         type = Message_type.valueOf(message_header.get(1));
@@ -91,7 +91,7 @@ public class MessageParser {
                         Integer.parseInt(message_header.get(4).trim()) //chunk_no
                 );
             default:
-                    throw new InvalidMessageException();
+                    throw new InvalidMessageException("Unknown message type");
 
         }
 

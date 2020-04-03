@@ -13,6 +13,7 @@ import project.Macros;
 import project.channel.*;
 import project.chunk.ChunkFactory;
 import project.protocols.BackupProtocol;
+import project.store.FilesListing;
 import project.store.Store;
 
 public class Peer implements RemoteInterface {
@@ -84,7 +85,7 @@ public class Peer implements RemoteInterface {
 
         String file_id = Store.createFileId(file);
 
-        Store.getStore().addFile(file.getName(), file_id);
+        FilesListing.get_files_Listing().putFile(file.getName(), file_id);
 
         BackupProtocol.send_putchunk(this.version, Peer.id, replication_degree, file_id, chunkFactory.get_chunks());
 
@@ -103,7 +104,7 @@ public class Peer implements RemoteInterface {
 
         final String file_name = new File(file_path).getName();
 
-        if(Store.getStore().getFiles(file_name) == null) {
+        if(FilesListing.get_files_Listing().get_file_id(file_name) == null) {
             System.err.println("A file with that name wasn't found, cannot restore a file that was't been backup by this peer");
             return -1;
         }
@@ -126,7 +127,7 @@ public class Peer implements RemoteInterface {
         final String file_name = new File(file_path).getName();
 
         //gets the file_id from the entry with key file_name form allFiles
-        final String file_id = Store.getStore().getFiles(file_name);
+        final String file_id = FilesListing.get_files_Listing().get_file_id(file_name) ;
 
         if (file_id == null) {
             System.err.println("File name was't find, cannot delete file that wasn't been backup");
@@ -136,7 +137,8 @@ public class Peer implements RemoteInterface {
         //TODO delete chunks
 
         // Remove entry with the file_name and correspond file_id from allFiles
-        Store.getStore().removeFile(file_name);
+        FilesListing.get_files_Listing().delete_file_record(file_name);
+
 
 
         return 0;

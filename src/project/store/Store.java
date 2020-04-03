@@ -16,7 +16,6 @@ public class Store {
 
     private static Store store = new Store();
 
-    private static ConcurrentHashMap<String, String> files = new ConcurrentHashMap<>();
     private static Hashtable<String, Chunk> stored_chunks = new Hashtable<>();
     private static Hashtable<String, String> restored_files = new Hashtable<>();
 
@@ -30,8 +29,16 @@ public class Store {
     private int space_with_storage = 0; //in bytes
     private Integer space_allow = -1; //Initial there isn't restrictions of space
 
-    public Store() {
+    private Store() {
         initializeStore();
+    }
+
+    /**
+     * get store instance
+     * @return store instance
+     */
+    public static Store getStore(){
+        return store;
     }
 
     /**
@@ -76,40 +83,11 @@ public class Store {
     }
 
     /**
-     * get store instance
-     * @return store instance
+     * gets the path for the file with the files info
+     * @return path for files info
      */
-    public static Store getStore(){
-        return store;
-    }
-
-    /**
-     * Method used to get the Hash map with the existing files
-     * @param file_name name of the file
-     * @return existing files HashMap
-     */
-    public static String getFiles(String file_name) {
-        return files.get(file_name);
-    }
-
-    /**
-     *
-     * @param file_name name of the file
-     * @param file_id encoded
-     */
-    public static void addFile(String file_name, String file_id) {
-        if(getStore() != null ) {
-            System.out.println("Other version detected, storing new by replacing");
-        }
-        files.put(file_name, file_id);
-    }
-
-    /**
-     * 
-     * @param file_name name of the file
-     */
-    public static void removeFile(String file_name) {
-        files.remove(file_name);
+    public String get_files_info_directory_path(){
+        return files_info_directory_path;
     }
 
     /**
@@ -242,8 +220,8 @@ public class Store {
      * used when a chunk is deleted
      * @param space_with_storage the amount of space in bytes used for storage
      */
-    public void remove_space_with_storage(int space_with_storage) {
-        this.space_with_storage -= space_with_storage;
+    public static void remove_space_with_storage(int space_with_storage) {
+        space_with_storage -= space_with_storage;
     }
 
     /**
@@ -342,7 +320,7 @@ public class Store {
      * @param chunk_number number of the chunk
      * @return true if chunk was removed and false if it was
      */
-    public boolean removeChunk(String file_id, int chunk_number) {
+    public static boolean removeChunk(String file_id, int chunk_number) {
 
         System.out.println("Deleting chunk "+ chunk_number + " with id:" + file_id);
 
@@ -363,56 +341,11 @@ public class Store {
         }
 
         if (chunk_file.delete()) {
-            this.remove_space_with_storage((int) chunk_file.length());
+            remove_space_with_storage((int) chunk_file.length());
             return true;
         }
 
         return false;
     }
-
-    /**
-     *
-     * @return true if successful and false otherwise
-     */
-    public boolean get_files_disk_info() {
-
-        if (!new File(this.files_info_directory_path).exists()) {
-            System.err.println("File info doesn't exist");
-            return false;
-        }
-
-        if (new File(this.files_info_directory_path).length() == 0) {
-            System.out.println("There aren't files in this peer.");
-            return true;
-        }
-
-        try (
-                FileInputStream fileInputStream = new FileInputStream(this.files_info_directory_path);
-                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)
-        ) {
-            files = (ConcurrentHashMap<String, String>) objectInputStream.readObject();
-            System.out.println("Get files map");
-        } catch (Exception exception) {
-            System.err.println("Couldn't get files Hashtable");
-            exception.getStackTrace();
-        }
-
-        return true;
-    }
-
-    /**
-     * puts the current hashTable in the file
-     */
-    public void set_files_disk_info() {
-        try (
-                FileOutputStream fos = new FileOutputStream(this.files_info_directory_path);
-                ObjectOutputStream oos = new ObjectOutputStream(fos)
-        ) {
-            oos.writeObject(this);
-        } catch (Exception exception) {
-            exception.getStackTrace();
-        }
-    }
-
 
 }

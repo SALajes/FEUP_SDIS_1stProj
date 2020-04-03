@@ -2,6 +2,7 @@ package project.protocols;
 
 import project.chunk.Chunk;
 import project.message.BaseMessage;
+import project.message.InvalidMessageException;
 import project.message.PutChunkMessage;
 import project.peer.Peer;
 
@@ -11,7 +12,13 @@ public class BackupProtocol {
     public static void send_putchunk(double version, int sender_id, int replication_degree, String file_id, ArrayList<Chunk> chunks){
         //sends putchunk
         for(int i = 0; i < chunks.size(); i++){
-            PutChunkMessage putchunk = new PutChunkMessage(version, sender_id, file_id, chunks.get(i).chunk_no, replication_degree, chunks.get(i).content);
+            PutChunkMessage putchunk = null;
+            try {
+                putchunk = new PutChunkMessage(version, sender_id, file_id, chunks.get(i).chunk_no, replication_degree, chunks.get(i).content);
+            } catch (InvalidMessageException e) {
+                System.err.println("Invalid PutChunkMessage");
+                e.printStackTrace();
+            }
 
             //lançar cada putchunk na sua thread
 
