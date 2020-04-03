@@ -47,8 +47,8 @@ public class MessageParser {
         switch (type) {
             case PUTCHUNK:
                 return new PutChunkMessage(
-                        message_header.get(0).trim(), //version
-                        message_header.get(2).trim(), //sender_id
+                        Double.parseDouble(message_header.get(0).trim()), //version
+                        Integer.parseInt(message_header.get(2).trim()), //sender_id
                         message_header.get(3).trim(), //file_id
                         Integer.parseInt(message_header.get(4).trim()), //chunk_no
                         Integer.parseInt(message_header.get(5).trim()), //replication degree
@@ -56,37 +56,37 @@ public class MessageParser {
                 );
             case STORED:
                 return new StoredMessage(
-                        message_header.get(0).trim(), //version
-                        message_header.get(2).trim(), //sender_id
+                        Double.parseDouble(message_header.get(0).trim()), //version
+                        Integer.parseInt(message_header.get(2).trim()), //sender_id
                         message_header.get(3).trim(), //file_id
                         Integer.parseInt(message_header.get(4).trim()) //chunk_no
                 );
             case GETCHUNK:
                 return new GetChunkMessage(
-                        message_header.get(0), //version
-                        message_header.get(2), //sender_id
+                        Double.parseDouble(message_header.get(0).trim()), //version
+                        Integer.parseInt(message_header.get(2).trim()), //sender_id
                         message_header.get(3), //file_id
                         Integer.parseInt(message_header.get(4)) //chunk_no
                         //message without a body
                 );
             case CHUNK:
                 return new ChunkMessage(
-                        message_header.get(0).trim(), //version
-                        message_header.get(2).trim(), //sender_id
+                        Double.parseDouble(message_header.get(0).trim()), //version
+                        Integer.parseInt(message_header.get(2).trim()), //sender_id
                         message_header.get(3).trim(), //file_id
                         Integer.parseInt(message_header.get(4).trim()), //chunk_no
                         header_body[1].trim().getBytes() //chunk
                 );
             case DELETE:
                 return new DeleteMessage(
-                        message_header.get(0).trim(), //version
-                        message_header.get(2).trim(), //sender_id
+                        Double.parseDouble(message_header.get(0).trim()), //version
+                        Integer.parseInt(message_header.get(2).trim()), //sender_id
                         message_header.get(3).trim() //file_id
                 );
             case REMOVED:
                 return new RemovedMessage(
-                        message_header.get(0).trim(), //version
-                        message_header.get(2).trim(), //sender_id
+                        Double.parseDouble(message_header.get(0).trim()), //version
+                        Integer.parseInt(message_header.get(2).trim()), //sender_id
                         message_header.get(3).trim(), //file_id
                         Integer.parseInt(message_header.get(4).trim()) //chunk_no
                 );

@@ -10,13 +10,13 @@ import java.util.Arrays;
  */
 public abstract class BaseMessage {
     //Header
-    private final String version;
+    private final double version;
     private final Message_type message_type;
-    private final String sender_id;
+    private final int sender_id;
     private final String file_id;
     protected String chunk;
 
-    public BaseMessage(String version, Message_type message_type, String sender_id, String file_id) {
+    public BaseMessage(double version, Message_type message_type, int sender_id, String file_id) {
         this.version = version;
         this.message_type = message_type;
         this.sender_id = sender_id;
@@ -34,7 +34,7 @@ public abstract class BaseMessage {
     }
 
 
-    public String getVersion() {
+    public double getVersion() {
         return version;
     }
 
@@ -42,7 +42,7 @@ public abstract class BaseMessage {
         return message_type;
     }
 
-    public String getSender_id() {
+    public int getSender_id() {
         return sender_id;
     }
 

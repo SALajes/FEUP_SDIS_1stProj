@@ -8,10 +8,12 @@ import project.peer.Peer;
 import java.util.ArrayList;
 
 public class BackupProtocol {
-    public static void send_putchunk(String version, String sender_id, int replication_degree, String file_id, ArrayList<Chunk> chunks){
+    public static void send_putchunk(double version, int sender_id, int replication_degree, String file_id, ArrayList<Chunk> chunks){
         //sends putchunk
         for(int i = 0; i < chunks.size(); i++){
             PutChunkMessage putchunk = new PutChunkMessage(version, sender_id, file_id, chunks.get(i).chunk_no, replication_degree, chunks.get(i).content);
+
+            //lançar cada putchunk na sua thread
 
             Peer.MDB.send_message(putchunk.convert_message());
 
