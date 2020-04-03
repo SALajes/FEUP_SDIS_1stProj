@@ -10,12 +10,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Hashtable;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Store {
 
     private static Store store = new Store();
 
-    private static Hashtable<String, String> files = new Hashtable<>();
+    private static ConcurrentHashMap<String, String> files = new ConcurrentHashMap<>();
     private static Hashtable<String, Chunk> stored_chunks = new Hashtable<>();
     private static Hashtable<String, String> restored_files = new Hashtable<>();
 
@@ -51,7 +52,7 @@ public class Store {
         create_empty_file(files_info_directory_path);
         create_directory(backup_directory_path);
         //if exists return true but doesn't creates a new file
-        create_empty_file(files_info_directory_path);
+        create_empty_file(backup_info_directory_path);
         create_directory(restored_directory_path);
     }
 
@@ -368,4 +369,50 @@ public class Store {
 
         return false;
     }
+
+    /**
+     *
+     * @return true if successful and false otherwise
+     */
+    public boolean get_files_disk_info() {
+
+        if (!new File(this.files_info_directory_path).exists()) {
+            System.err.println("File info doesn't exist");
+            return false;
+        }
+
+        if (new File(this.files_info_directory_path).length() == 0) {
+            System.out.println("There aren't files in this peer.");
+            return true;
+        }
+
+        try (
+                FileInputStream fileInputStream = new FileInputStream(this.files_info_directory_path);
+                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)
+        ) {
+            files = (ConcurrentHashMap<String, String>) objectInputStream.readObject();
+            System.out.println("Get files map");
+        } catch (Exception exception) {
+            System.err.println("Couldn't get files Hashtable");
+            exception.getStackTrace();
+        }
+
+        return true;
+    }
+
+    /**
+     * puts the current hashTable in the file
+     */
+    public void set_files_disk_info() {
+        try (
+                FileOutputStream fos = new FileOutputStream(this.files_info_directory_path);
+                ObjectOutputStream oos = new ObjectOutputStream(fos)
+        ) {
+            oos.writeObject(this);
+        } catch (Exception exception) {
+            exception.getStackTrace();
+        }
+    }
+
+
 }
