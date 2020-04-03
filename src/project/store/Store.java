@@ -15,23 +15,32 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Store {
     private static Store store = null;
 
-    private static Hashtable<String, String> files = new Hashtable<>();
     private static Hashtable<String, Chunk> stored_chunks = new Hashtable<>();
     private static Hashtable<String, String> restored_files = new Hashtable<>();
     private static ConcurrentHashMap<String, ArrayList<Integer>> backup_chunks_occurrences = new ConcurrentHashMap<>();
 
     private static String peer_directory_path;
     private static String files_directory_path;
+    private static String files_info_directory_path;
     private static String stored_directory_path;
+    private static String stored_info_directory_path;
     private static String restored_directory_path;
 
     private int space_with_storage = 0; //in bytes
     private Integer space_allow = -1; //Initial there isn't restrictions of space
 
+
     /**
      * creates the four needed directory
      */
-    private Store(){
+    private Store() {
+        initializeStore();
+    }
+
+    /**
+     * creates the four needed directory
+     */
+    public void initializeStore(){
         //setting the directory name
         peer_directory_path = Peer.id + "_directory/";
         files_directory_path = peer_directory_path + "files/";
@@ -40,7 +49,10 @@ public class Store {
 
         create_directory(peer_directory_path);
         create_directory(files_directory_path);
+        create_empty_file(files_info_directory_path);
         create_directory(stored_directory_path);
+        //if exists return true but doesn't creates a new file
+        create_empty_file(stored_info_directory_path);
         create_directory(restored_directory_path);
     }
 
@@ -50,6 +62,7 @@ public class Store {
 
         return store;
     }
+
 
     /**
      * Idempotent Method that creates a directory given the path
@@ -68,27 +81,6 @@ public class Store {
             }
         }
         return true;
-    }
-
-    public static String getFile(String file_name) {
-        return files.get(file_name);
-    }
-
-    /**
-     *
-     * @param file_name name of the file
-     * @param file_id encoded
-     */
-    public static void addFile(String file_name, String file_id) {
-        files.put(file_name, file_id);
-    }
-
-    /**
-     * 
-     * @param file_name name of the file
-     */
-    public static void removeFile(String file_name) {
-        files.remove(file_name);
     }
 
     /**
@@ -224,24 +216,39 @@ public class Store {
     }
 
     /**
-     * Creates an empty file to start the restoring procedure
-     * @param file_name name of the file that is being restore
+     * Creates an empty file to start the restoring procedure or the backup
+     * @return true if successful, and false otherwise
      */
-    public boolean createEmptyFileForRestore(String file_name) {
-        String file_path =  restored_directory_path + "/" + file_name;
+    public boolean create_empty_file_for_restoring(String file_name ) {
+        String restore_file_path =  restored_directory_path + "/" + file_name;
+        return create_empty_file(restore_file_path);
+    }
+
+    /**
+     * Creates an empty file to start the restoring procedure or the backup/info file
+     * if exists return true but doesn't creates a new file
+     * @param file_path path of the file that is being created
+     */
+    public boolean create_empty_file(String file_path) {
 
         try {
             File file = new File(file_path);
-            file.createNewFile();
-            System.out.println("File: " + file_name + "was created");
-            return true;
+            if(file.exists())
+                return true;
+
+            if(file.createNewFile()) {
+                System.out.println("File: " + file + " was created");
+                return true;
+            }
         } catch(Exception e) {
             e.printStackTrace();
             System.err.println("Couldn't create an empty file to start restoring");
             return false;
         }
-
+        return false;
     }
+
+
 
     /**
      * This functions append the body of a chunk (file data) in the position desired ( calculated with chunk number)
@@ -323,5 +330,9 @@ public class Store {
 
     public void remove_Backup_chunks_occurrences(String chunk_id) {
         this.backup_chunks_occurrences.remove(chunk_id);
+    }
+
+    public String get_files_info_directory_path() {
+        return files_info_directory_path;
     }
 }

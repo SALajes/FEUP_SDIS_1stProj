@@ -27,7 +27,7 @@ public class FilesListing {
         return files.get(file_name);
     }
 
-    public void putFile(String file_name, String file_id) {
+    public void add_file(String file_name, String file_id) {
 
         //put returns the previous value associated with key, or null if there was no mapping for key
         String previous_file_id = files.put(file_name, file_id);
@@ -57,7 +57,7 @@ public class FilesListing {
      */
     public boolean set_files_disk_info() {
         try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(Store.getStore().get_files_info_directory_path()));
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(Store.getInstance().get_files_info_directory_path()));
             objectOutputStream.writeObject(this);
         } catch (Exception e) {
             e.getStackTrace();
@@ -74,13 +74,13 @@ public class FilesListing {
     public static boolean get_files_disk_info() {
 
         //if file is empty there is nothing to have in the concurrentMap
-        if (new File(Store.getStore().get_files_info_directory_path()).length() == 0) {
+        if (new File(Store.getInstance().get_files_info_directory_path()).length() == 0) {
             System.out.println("There isn't previous file info.");
             return true;
         }
 
         try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(Store.getStore().get_files_info_directory_path()));
+            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(Store.getInstance().get_files_info_directory_path()));
             filesListing = (FilesListing) objectInputStream.readObject();
             System.out.println("Files Concurrent map is updated according to disk info");
 
