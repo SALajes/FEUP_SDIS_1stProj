@@ -34,7 +34,7 @@ public class Store {
     }
 
     /**
-     * creates the for needed directory
+     * creates the four needed directory
      */
     public void initializeStore(){
 
@@ -48,26 +48,30 @@ public class Store {
         create_directory(files_directory_path);
         create_directory(backup_directory_path);
         create_directory(restored_directory_path);
-
     }
 
     /**
-     * Idempotent Method
-     * @return
+     * Idempotent Method that creates a directory given the path
+     * @return success if directory was or is created and false if not
      */
     public boolean create_directory(String directory_path) {
+
         File directory = new File(directory_path);
-        //mkdirs() returns true if created and false on failure or if exists
-        if(!directory.mkdirs() && !directory.isDirectory()){
-            System.out.println("Directory " + directory + " wasn't created!");
-            return false;
+        if (!directory.exists()) {
+            //mkdirs() returns true if created and false on failure or if exists
+            if (directory.mkdir()) {
+                return true;
+            } else {
+                System.out.println("Directory " + directory + " wasn't created!");
+                return false;
+            }
         }
         return true;
     }
 
     /**
      *
-     * @return
+     * @return store instance
      */
     public static Store getStore(){
         return store;
@@ -76,7 +80,7 @@ public class Store {
     /**
      *
      * @param file_name
-     * @return
+     * @return existing files HashMap
      */
     public static String getFiles(String file_name) {
         return files.get(file_name);
@@ -105,11 +109,10 @@ public class Store {
     /**
      *
      * @param file_id
-     * @param chunk_no
      * @param chunk
      */
-    public static void storeChunk(String file_id, int chunk_no, Chunk chunk){
-        stored_chunks.put(file_id + "_" + chunk_no, chunk);
+    public static void storeChunk(String file_id, Chunk chunk){
+        stored_chunks.put(file_id + "_" + chunk.chunk_no, chunk);
     }
 
     /**
@@ -175,8 +178,8 @@ public class Store {
         create_directory(chunk_dir);
         String chunk_path = String.format( chunk_dir + chunk_no);
 
-
         try {
+            //FileOutputStream.write() method automatically create a new file and write content to it.
             FileOutputStream file = new FileOutputStream(chunk_path);
             file.write(chunk_body);
             file.close();
@@ -222,5 +225,47 @@ public class Store {
      */
     public void setSpace_with_storage(int space_with_storage) {
         this.space_with_storage = space_with_storage;
+    }
+
+    /**
+     * used when a chunk is deleted
+     * @param space_with_storage
+     */
+    public void remove_space_with_storage(int space_with_storage) {
+        this.space_with_storage -= space_with_storage;
+    }
+
+    /**
+     * Deletes a chunk
+     * @param file_id
+     * @param chunk_no
+     * @return true if chunk was removed and false if it was
+     */
+    public boolean removeChunk(String file_id, int chunk_no) {
+
+        System.out.println("Deleting chunk "+ chunk_no + " with id:" + file_id);
+
+        //check if the chunk exists
+        if (retrieveChunk(file_id, chunk_no) == null) {
+            System.out.println("A chunk with number " + chunk_no + " and file_id " + file_id + " doesn't exists.");
+            return true;
+        }
+
+        //chunk will be in backup_directory/file_id/chunk_no
+        String chunk_dir =  this.backup_directory_path + "/" + file_id + "/"+ chunk_no;
+
+        File chunk_file = new File(chunk_dir);
+
+        if( !chunk_file.exists() ){
+            System.out.println("File doesn't exists in the correct path ");
+            return false;
+        }
+
+        if (chunk_file.delete()) {
+            this.remove_space_with_storage((int) chunk_file.length());
+            return true;
+        }
+
+        return false;
     }
 }
