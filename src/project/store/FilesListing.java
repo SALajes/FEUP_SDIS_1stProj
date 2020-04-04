@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class FilesListing {
 
-    private static FilesListing filesListing = null;
+    private static FilesListing filesListing = new FilesListing();
     private ConcurrentHashMap<String, String> files = new ConcurrentHashMap<>();
 
     //singleton
@@ -21,9 +21,6 @@ public class FilesListing {
      * @return an instance FilesListing
      */
     public static FilesListing get_files_Listing() {
-        if(filesListing == null) {
-            get_files_disk_info();
-        }
         return filesListing;
     }
 

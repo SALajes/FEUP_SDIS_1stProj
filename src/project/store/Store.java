@@ -44,7 +44,9 @@ public class Store {
         //setting the directory name
         peer_directory_path = Peer.id + "_directory/";
         files_directory_path = peer_directory_path + "files/";
+        files_info_directory_path = peer_directory_path + "files.txt";
         stored_directory_path = peer_directory_path + "stored/";
+        stored_info_directory_path = peer_directory_path + "stored.txt";
         restored_directory_path = peer_directory_path + "restored/";
 
         create_directory(peer_directory_path);
@@ -85,7 +87,16 @@ public class Store {
 
     public void set_space_allow(Integer space_allow) {
         space_allow = space_allow;
+
         //TODO delete necessary chunk to have that space
+      /*   while(space_allow < space_with_storage) {
+            String file_id;
+            String chunk_number;
+            //remove chunks updates space with storage
+            removeChunk(file_id, chunk_number);
+
+        } */
+
     }
 
     /**
@@ -337,7 +348,7 @@ public class Store {
         this.backup_chunks_occurrences.remove(chunk_id);
     }
 
-    public String get_files_info_directory_path() {
+    public static String get_files_info_directory_path() {
         return files_info_directory_path;
     }
 }
