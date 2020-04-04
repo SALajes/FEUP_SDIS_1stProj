@@ -15,6 +15,7 @@ import project.channel.*;
 import project.chunk.ChunkFactory;
 import project.message.InvalidMessageException;
 import project.protocols.BackupProtocol;
+import project.protocols.DeleteProtocol;
 import project.store.FilesListing;
 import project.store.Store;
 
@@ -147,7 +148,7 @@ public class Peer implements RemoteInterface {
         }
 
         //sends message REMOVE to all peers
-
+        DeleteProtocol.send_delete(version, id, file_id);
 
         //remove file of own records and files
       //  Store.getInstance().remove_Backup_chunks_occurrences(file_id);

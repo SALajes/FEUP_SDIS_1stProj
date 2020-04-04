@@ -270,11 +270,11 @@ public class Store {
      * This functions append the body of a chunk (file data) in the position desired ( calculated with chunk number)
      * Used for restoring a file with a certain given filename
      * @param file_name name of the file
-     * @param chunk_number number of the chunk
      * @param chunk_data the array with the bytes to put
+     * @param chunk_number number of the chunk
      * @return true if success and false otherwise
      */
-    public boolean writeChunkToFullFile(String file_name, int chunk_number, byte[] chunk_data) {
+    public boolean write_chunk_to_restored_file(String file_name, byte[] chunk_data, int chunk_number) {
 
         String file_path =  restored_directory_path + "/" + file_name;
 
