@@ -34,10 +34,10 @@ public class MulticastControlChannel extends Channel {
                     RestoreProtocol.receive_getchunk(message);
                     break;
                 case DELETE:
-                    DeleteProtocol.receive_delete(message);
+                    DeleteProtocol.receive_delete((DeleteMessage) message);
                     break;
                 case REMOVED:
-                    ReclaimProtocol.receive_removed(message);
+                    ReclaimProtocol.receive_removed((RemovedMessage) message);
                     break;
                 default:
                     System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());
