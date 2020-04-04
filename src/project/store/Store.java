@@ -83,6 +83,11 @@ public class Store {
         return true;
     }
 
+    public void set_space_allow(Integer space_allow) {
+        space_allow = space_allow;
+        //TODO delete necessary chunk to have that space
+    }
+
     /**
      *
      * @param file_id encoded

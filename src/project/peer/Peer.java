@@ -165,6 +165,9 @@ public class Peer implements RemoteInterface {
             System.err.println("Invalid maximum disk space");
             System.exit(-1);
         }
+
+        Store.getInstance().set_space_allow(max_disk_space);
+
         return 0;
     }
 

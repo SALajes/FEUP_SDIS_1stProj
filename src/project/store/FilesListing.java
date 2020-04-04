@@ -3,14 +3,23 @@ package project.store;
 import java.io.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * class that keeps record of the conversion of file_name to file_id
+ */
 public class FilesListing {
 
-    private static FilesListing filesListing;
+    private static FilesListing filesListing = null;
     private ConcurrentHashMap<String, String> files = new ConcurrentHashMap<>();
 
     //singleton
-    private FilesListing() { }
+    private FilesListing() {
+        get_files_disk_info();
+    }
 
+    /**
+     *
+     * @return an instance FilesListing
+     */
     public static FilesListing get_files_Listing() {
         if(filesListing == null) {
             get_files_disk_info();
@@ -52,8 +61,8 @@ public class FilesListing {
 
 
     /**
-     *
-     * @return
+     * changes the content of the file to contain this current object
+     * @return true if successful and false otherwise
      */
     public boolean set_files_disk_info() {
         try {
