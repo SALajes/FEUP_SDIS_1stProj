@@ -265,7 +265,6 @@ public class Store {
     }
 
 
-
     /**
      * This functions append the body of a chunk (file data) in the position desired ( calculated with chunk number)
      * Used for restoring a file with a certain given filename

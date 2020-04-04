@@ -25,9 +25,12 @@ public class DeleteProtocol {
         System.out.println(deleteMessage.getFile_id());
         System.out.println("------------------");
 
+        String file_id = deleteMessage.getFile_id();
+        Store.getInstance().delete_file_folder( file_id);
+
         //deletes all chunks
         for(int i = 0; i < Macros.MAX_NUMBER_CHUNKS; i++ ) {
-            String chunk_id = deleteMessage.getFile_id() + "_" + i;
+            String chunk_id = file_id + "_" + i;
             Store.getInstance().remove_Backup_chunks_occurrences(chunk_id);
         }
 

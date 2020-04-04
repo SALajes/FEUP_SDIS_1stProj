@@ -18,7 +18,7 @@ public class MessageParser {
         List<String> header_fields = Arrays.asList(header.split(" "));
 
         //Shortest header is "<Version> DELETE <SenderId> <FileId> <CRLF><CRLF>"
-        if (header_fields.size() <= 4) {
+        if (header_fields.size() < 4) {
             throw new InvalidMessageException("Invalid header");
         }
         return header_fields;
