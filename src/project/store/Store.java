@@ -290,6 +290,34 @@ public class Store {
         }
     }
 
+    public static boolean delete_file_folder(String file_id) {
+        File file_directory = new File(stored_directory_path + "/" + file_id);
+        File[] folder_files = null;
+
+        if(file_directory == null){
+            return false;
+        }
+
+        if (file_directory.isFile()) {
+            return file_directory.delete();
+        }
+
+        if (!file_directory.isDirectory()) {
+            return false;
+        }
+
+        folder_files = file_directory.listFiles();
+        if (folder_files != null && folder_files.length > 0) {
+            for (File f : folder_files) {
+                if (!f.delete()) {
+                    return false;
+                }
+            }
+        }
+
+        return file_directory.delete();
+    }
+
     /**
      * Deletes a chunk
      * @param file_id encoded

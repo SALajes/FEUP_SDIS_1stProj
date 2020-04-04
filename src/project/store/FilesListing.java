@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FilesListing {
 
     private static FilesListing filesListing = new FilesListing();
-    private ConcurrentHashMap<String, String> files = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, String> files;
 
     //singleton
     private FilesListing() {
@@ -50,6 +50,7 @@ public class FilesListing {
             //TODO unregister chunks of the file
 
         }
+        set_files_disk_info();
     }
 
     public void delete_file_record(String file_name) {
@@ -64,10 +65,10 @@ public class FilesListing {
     public boolean set_files_disk_info() {
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(Store.getInstance().get_files_info_directory_path()));
-            objectOutputStream.writeObject(this);
+            objectOutputStream.writeObject(files);
         } catch (Exception e) {
             e.getStackTrace();
-            System.out.println("Couldn't get files info from the disk");
+            System.out.println("Couldn't get files info to the disk");
             return false;
         }
         return true;
@@ -81,13 +82,14 @@ public class FilesListing {
 
         //if file is empty there is nothing to have in the concurrentMap
         if (new File(Store.getInstance().get_files_info_directory_path()).length() == 0) {
+            files = new ConcurrentHashMap<>();
             System.out.println("There isn't previous file info.");
             return true;
         }
 
         try {
             ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(Store.getInstance().get_files_info_directory_path()));
-            filesListing = (FilesListing) objectInputStream.readObject();
+            files = (ConcurrentHashMap<String, String>) objectInputStream.readObject();
             System.out.println("Files Concurrent map is updated according to disk info");
 
         } catch (Exception ignored) {

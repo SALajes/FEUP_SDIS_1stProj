@@ -74,6 +74,8 @@ public class Peer implements RemoteInterface {
             new Thread(MDB).start();
             new Thread(MDR).start();
 
+            FilesListing.get_files_Listing().get_files_disk_info();
+
             System.out.println("Peer ready");
 
         } catch (Exception e) {
@@ -144,10 +146,16 @@ public class Peer implements RemoteInterface {
             System.exit(-1);
         }
 
-        //TODO delete chunks
+        //sends message REMOVE to all peers
+
+
+        //remove file of own records and files
+      //  Store.getInstance().remove_Backup_chunks_occurrences(file_id);
+        Store.getInstance().delete_file_folder(file_id);
 
         // Remove entry with the file_name and correspond file_id from allFiles
         FilesListing.get_files_Listing().delete_file_record(file_name);
+
 
 
         return 0;
