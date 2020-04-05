@@ -26,8 +26,8 @@ public class BackupProtocol {
 
     public static void process_putchunk(PutChunkMessage putchunk, String chunk_id){
         int tries = 1;
-        byte[] body = putchunk.getChunk();
-        System.out.println("BODY IN PUTCHUNK (" + body.length + ")");
+
+        System.out.println("BODY SENT IN PUTCHUNK (" + putchunk.getChunk().length + ")");
 
         while(tries <= 5){
             Peer.MDB.send_message(putchunk.convert_message());
