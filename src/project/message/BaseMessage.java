@@ -29,7 +29,7 @@ public abstract class BaseMessage {
     }
 
     public byte[] convert_message(){
-        String header = get_header() + " " + Macros.CR + Macros.LF + Macros.CR + Macros.LF;
+        String header = get_header() + " " + ((char)Macros.CR) + ((char)Macros.LF) + ((char)Macros.CR) + ((char)Macros.LF);
 
         if(this.chunk == null)
             return header.getBytes();

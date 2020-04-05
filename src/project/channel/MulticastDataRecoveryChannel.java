@@ -15,10 +15,9 @@ public class MulticastDataRecoveryChannel extends Channel {
 
     @Override
     public void readable_message(DatagramPacket packet) {
-        String raw_message = new String(packet.getData(), 0, packet.getData().length);
-
         try {
-            BaseMessage message = MessageParser.parseMessage(raw_message);
+            byte [] raw_message = packet.getData();
+            BaseMessage message = MessageParser.parseMessage(raw_message, raw_message.length);
 
             if(message.getSender_id() == Peer.id)
                 return;
