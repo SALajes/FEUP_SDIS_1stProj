@@ -46,6 +46,7 @@ public class MessageParser {
 
         switch (type) {
             case PUTCHUNK:
+                System.out.println("BODY RECEIVED IN PUTCHUNK (" + header_body[1].trim().getBytes().length + ")");
                 return new PutChunkMessage(
                         Double.parseDouble(message_header.get(0).trim()), //version
                         Integer.parseInt(message_header.get(2).trim()), //sender_id
