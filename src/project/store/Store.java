@@ -47,7 +47,7 @@ public class Store {
         peer_directory_path = Peer.id + "_directory/";
         files_directory_path = peer_directory_path + "files/";
         files_info_directory_path = peer_directory_path + "files.txt";
-        store_directory_path = peer_directory_path + "store/";
+        store_directory_path = peer_directory_path + "stored/";
         store_info_directory_path = peer_directory_path + "stored.txt";
         restored_directory_path = peer_directory_path + "restored/";
 

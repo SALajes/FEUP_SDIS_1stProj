@@ -48,7 +48,7 @@ public class RestoreProtocol {
     }
 
     public static void process_chunk(ChunkMessage chunkMessage){
-        Peer.MC.send_message(chunkMessage.convert_message());
+        Peer.MDR.send_message(chunkMessage.convert_message());
 
     }
 
