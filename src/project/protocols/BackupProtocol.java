@@ -26,6 +26,8 @@ public class BackupProtocol {
 
     public static void process_putchunk(PutChunkMessage putchunk, String chunk_id){
         int tries = 1;
+        byte[] body = putchunk.getChunk();
+        System.out.println("BODY IN PUTCHUNK (" + body.length + ")");
 
         while(tries <= 5){
             Peer.MDB.send_message(putchunk.convert_message());
@@ -51,8 +53,8 @@ public class BackupProtocol {
 
     public static void receive_putchunk(PutChunkMessage putchunk){
         System.out.println("------------------");
-        System.out.println("Received putchunk: ");
-        if(Store.getInstance().storeChunk(putchunk.getFile_id(), putchunk.getChunkNo(), putchunk.getChunk().getBytes(), putchunk.getReplicationDegree())){
+        System.out.println("Received putchunk ");
+        if(Store.getInstance().storeChunk(putchunk.getFile_id(), putchunk.getChunkNo(), putchunk.getChunk(), putchunk.getReplicationDegree())){
             StoredMessage stored = new StoredMessage(putchunk.getVersion(), Peer.id, putchunk.getFile_id(), putchunk.getChunkNo());
 
             Peer.MC.send_message(stored.convert_message());
@@ -63,7 +65,7 @@ public class BackupProtocol {
 
     public static void receive_stored(StoredMessage message){
         System.out.println("------------------");
-        System.out.println("Received stored: ");
+        System.out.println("Received stored ");
         System.out.println("------------------");
         String chunk_id = message.getFile_id() + "_" + message.getChunk_no();
         Store.getInstance().add_Backup_chunks_occurrences(chunk_id, message.getSender_id());

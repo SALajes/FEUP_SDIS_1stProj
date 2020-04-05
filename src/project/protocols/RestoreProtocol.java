@@ -55,6 +55,6 @@ public class RestoreProtocol {
     public static void receive_chunk(ChunkMessage chunkMessage){
 
         String file_name = FilesListing.get_files_Listing().get_file_name(chunkMessage.getFile_id());
-        Store.getInstance().write_chunk_to_restored_file(file_name,  chunkMessage.getChunk().getBytes(), chunkMessage.get_chunk_no());
+        Store.getInstance().write_chunk_to_restored_file(file_name,  chunkMessage.getChunk(), chunkMessage.get_chunk_no());
     }
 }

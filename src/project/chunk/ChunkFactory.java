@@ -47,6 +47,7 @@ public class ChunkFactory {
                     throw new InvalidFileException("File is larger than accepted");
                 }
                 Chunk chunk = new Chunk(chunk_no, Arrays.copyOf(buffer, size), size);
+
                 this.chunks.add(chunk);
 
                 chunk_no++;
