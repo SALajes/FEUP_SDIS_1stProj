@@ -106,6 +106,21 @@ public class Store {
         else return false;
     }
 
+    private void add_stored_chunk(String file_id, int chunk_number, int replicationDegree) {
+        if(stored_chunks.containsKey(file_id)) {
+            Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
+            pair.second.add(chunk_number);
+
+            stored_chunks.replace(file_id, pair);
+        }
+        else {
+            ArrayList<Integer> chunks_stored = new ArrayList<>();
+            chunks_stored.add(chunk_number);
+            Pair pair = new Pair<>(replicationDegree, chunks_stored);
+            stored_chunks.put(file_id, pair);
+        }
+    }
+
     public static Chunk retrieveChunk(String file_id, int chunk_no){
         if(checkStoredChunk(file_id, chunk_no)) {
             //TODO: get the chunk information from the chunks saved file
@@ -143,9 +158,10 @@ public class Store {
      * @param file_id encoded
      * @param chunk_number number of the chunk
      * @param chunk_body data
+     * @param replicationDegree
      * @return true if successful or false otherwise
      */
-    public boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body) {
+    public boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, int replicationDegree) {
 
         //check if the chunk already exists
         if (checkStoredChunk(file_id, chunk_number)) {
@@ -176,10 +192,14 @@ public class Store {
             return false;
         }
 
+        add_stored_chunk(file_id, chunk_number, replicationDegree);
+
         //update the current space used for storage
        this.AddToSpace_with_storage(chunk_body.length);
         return true;
     }
+
+
 
     /**
      * used to check if there is space to store a new chunk
@@ -346,7 +366,7 @@ public class Store {
     }
 
     public void new_Backup_chunk(String chunk_id, int replication_degree) {
-        if(this.backup_chunks_occurrences.contains(chunk_id)){
+        if(this.backup_chunks_occurrences.containsKey(chunk_id)){
             Pair<Integer, ArrayList<Integer>> pair = this.backup_chunks_occurrences.get(chunk_id);
 
             pair.first = replication_degree;
@@ -357,11 +377,13 @@ public class Store {
     }
 
     public void add_Backup_chunks_occurrences(String chunk_id, int peer_id) {
-        if(this.backup_chunks_occurrences.contains(chunk_id)){
+        if(this.backup_chunks_occurrences.containsKey(chunk_id)){
             Pair<Integer, ArrayList<Integer>> pair = this.backup_chunks_occurrences.get(chunk_id);
 
-            if(pair.second.contains(peer_id))
+            if(pair.second.contains(peer_id)){
+                System.out.println("Already received a positive feedback from this peer");
                 return;
+            }
 
             pair.second.add(peer_id);
             this.backup_chunks_occurrences.replace(chunk_id, pair);

@@ -24,7 +24,7 @@ public abstract class Channel implements Runnable {
 
     public void send_message(byte[] message){
         try{
-            DatagramSocket socket = new DatagramSocket();
+            MulticastSocket socket = new MulticastSocket(this.port);
 
             DatagramPacket packet = new DatagramPacket(message, message.length, this.InetAddress, this.port);
 

@@ -14,15 +14,19 @@ public class BackupProtocol {
         for(int i = 0; i < chunks.size(); i++){
             PutChunkMessage putchunk = new PutChunkMessage(version, sender_id, file_id, chunks.get(i).chunk_no, replication_degree, chunks.get(i).content);
 
-            Runnable task = () -> process_putchunk(putchunk);
+            String chunk_id = file_id + "_" + chunks.get(i).chunk_no;
+
+            Store.getInstance().new_Backup_chunk(chunk_id, replication_degree);
+
+            Runnable task = () -> process_putchunk(putchunk, chunk_id);
 
             new Thread(task).start();
         }
     }
 
-    public static void process_putchunk(PutChunkMessage putchunk){
+    public static void process_putchunk(PutChunkMessage putchunk, String chunk_id){
         int tries = 1;
-        String chunk_id = putchunk.getFile_id() + "_" + putchunk.getChunkNo();
+
         while(tries <= 5){
             Peer.MDB.send_message(putchunk.convert_message());
 
@@ -46,21 +50,20 @@ public class BackupProtocol {
     }
 
     public static void receive_putchunk(PutChunkMessage putchunk){
-        System.out.println("Received putchunk: ");
-        System.out.println(putchunk.getFile_id());
-        System.out.println(putchunk.getChunkNo());
         System.out.println("------------------");
-        if(Store.getInstance().storeChunk(putchunk.getFile_id(), putchunk.getChunkNo(), putchunk.getChunk().getBytes())){
+        System.out.println("Received putchunk: ");
+        if(Store.getInstance().storeChunk(putchunk.getFile_id(), putchunk.getChunkNo(), putchunk.getChunk().getBytes(), putchunk.getReplicationDegree())){
             StoredMessage stored = new StoredMessage(putchunk.getVersion(), Peer.id, putchunk.getFile_id(), putchunk.getChunkNo());
 
             Peer.MC.send_message(stored.convert_message());
         }
+
+        System.out.println("------------------");
     }
 
     public static void receive_stored(StoredMessage message){
+        System.out.println("------------------");
         System.out.println("Received stored: ");
-        System.out.println(message.getFile_id());
-        System.out.println(message.getChunk_no());
         System.out.println("------------------");
         String chunk_id = message.getFile_id() + "_" + message.getChunk_no();
         Store.getInstance().add_Backup_chunks_occurrences(chunk_id, message.getSender_id());
