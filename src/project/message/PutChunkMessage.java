@@ -13,7 +13,9 @@ public class PutChunkMessage extends BaseMessage {
         //replication degree of the chunk  is a digit, thus allowing a replication degree of up to 9. It takes one byte, which is the ASCII code of that digit.
 
         this.replication_degree = replication_degree;
-        this.chunk = new String(chunk, 0, chunk.length);
+        System.out.println("BODY BEFORE PUTCHUNK (" + chunk.length + ")" + " CHUNK NO: " + chunk_no);
+
+        this.chunk = chunk;
     }
 
     public int getChunkNo(){

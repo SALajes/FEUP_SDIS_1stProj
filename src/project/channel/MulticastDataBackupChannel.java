@@ -4,6 +4,7 @@ import project.message.*;
 import project.peer.Peer;
 import project.protocols.BackupProtocol;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 
 public class MulticastDataBackupChannel extends Channel {

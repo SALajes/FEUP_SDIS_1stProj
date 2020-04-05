@@ -1,5 +1,6 @@
 package project.channel;
 
+import project.Macros;
 import project.message.BaseMessage;
 import project.message.InvalidMessageException;
 
@@ -25,6 +26,9 @@ public abstract class Channel implements Runnable {
     public void send_message(byte[] message){
         try{
             MulticastSocket socket = new MulticastSocket(this.port);
+            socket.setTimeToLive(Macros.TTL);
+
+            socket.joinGroup(this.InetAddress);
 
             DatagramPacket packet = new DatagramPacket(message, message.length, this.InetAddress, this.port);
 
@@ -45,6 +49,7 @@ public abstract class Channel implements Runnable {
             byte[] buffer = new byte[1024];
 
             MulticastSocket socket = new MulticastSocket(this.port);
+            socket.setTimeToLive(Macros.TTL);
 
             socket.joinGroup(this.InetAddress);
 

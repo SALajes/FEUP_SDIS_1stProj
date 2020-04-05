@@ -4,6 +4,7 @@ import project.message.*;
 import project.peer.Peer;
 import project.protocols.RestoreProtocol;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 
 public class MulticastDataRecoveryChannel extends Channel {
