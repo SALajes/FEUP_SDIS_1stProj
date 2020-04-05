@@ -16,6 +16,7 @@ import project.chunk.ChunkFactory;
 import project.message.InvalidMessageException;
 import project.protocols.BackupProtocol;
 import project.protocols.DeleteProtocol;
+import project.protocols.RestoreProtocol;
 import project.store.FilesListing;
 import project.store.Store;
 
@@ -98,7 +99,9 @@ public class Peer implements RemoteInterface {
 
         String file_id = Store.getInstance().createFileId(file);
 
-        FilesListing.get_files_Listing().add_file(file.getName(), file_id);
+        Integer number_of_chunks = (int) Math.ceil((float) file.length() / Macros.CHUNK_MAX_SIZE );
+
+        FilesListing.get_files_Listing().add_file(file.getName(), file_id, number_of_chunks);
 
         BackupProtocol.send_putchunk(this.version, Peer.id, replication_degree, file_id, chunkFactory.get_chunks());
 
@@ -109,20 +112,26 @@ public class Peer implements RemoteInterface {
     /**
      *
      * @param file_path
-     * @throws RemoteException
      * The client shall specify the file to restore by its pathname.
      */
     @Override
-    public int restore(String file_path) throws RemoteException {
+    public int restore(String file_path) {
 
         final String file_name = new File(file_path).getName();
 
-        if(FilesListing.get_files_Listing().get_file_id(file_name) == null) {
+        final String file_id = FilesListing.get_files_Listing().get_file_id(file_name);
+        if(file_id == null) {
             System.err.println("A file with that name wasn't found, cannot restore a file that was't been backup by this peer");
             return -1;
         }
 
-        //Restore
+        Store.getInstance().create_empty_file_for_restoring( file_name );
+
+        Integer number_of_chunks = FilesListing.get_files_Listing().get_number_of_chunks(file_name);
+        //Restore all chunks
+        for(int i = 0; i < number_of_chunks; i++) {
+            RestoreProtocol.send_getchunk(version, Peer.id, file_id, i);
+        }
 
         return 0;
     }
@@ -155,7 +164,7 @@ public class Peer implements RemoteInterface {
         Store.getInstance().delete_file_folder(file_id);
 
         // Remove entry with the file_name and correspond file_id from allFiles
-        FilesListing.get_files_Listing().delete_file_record(file_name);
+        FilesListing.get_files_Listing().delete_file_records(file_name);
 
 
 

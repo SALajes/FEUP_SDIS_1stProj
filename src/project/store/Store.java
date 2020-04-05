@@ -15,8 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Store {
     private static Store store = null;
 
+    //state of others chunks
     private static Hashtable<String, Chunk> stored_chunks = new Hashtable<>();
     private static Hashtable<String, String> restored_files = new Hashtable<>();
+    //state of our files - key file_id + chunk and value replication degree and list of peers
     private static ConcurrentHashMap<String, ArrayList<Integer>> backup_chunks_occurrences = new ConcurrentHashMap<>();
 
     private static String peer_directory_path;
@@ -165,7 +167,7 @@ public class Store {
             return false;
         }
 
-        String chunk_dir =  this.stored_directory_path + "/" + file_id + "/";
+        String chunk_dir = this.stored_directory_path + "/" + file_id + "/";
 
         // Idempotent Method
         create_directory(chunk_dir);
@@ -289,8 +291,15 @@ public class Store {
         }
     }
 
+
     public static boolean delete_file_folder(String file_id) {
-        File file_directory = new File(stored_directory_path + "/" + file_id);
+       return ( delete_file_folder_by_path( new File(files_directory_path + "/" + file_id)) &&
+               delete_file_folder_by_path( new File(stored_directory_path + "/" + file_id)) &&
+               delete_file_folder_by_path(  new File(restored_directory_path + "/" + file_id) ) ) ;
+    }
+
+    private static boolean delete_file_folder_by_path(File file_directory) {
+
         File[] folder_files = null;
 
         if(file_directory == null){

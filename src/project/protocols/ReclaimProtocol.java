@@ -6,6 +6,7 @@ import project.message.PutChunkMessage;
 import project.message.RemovedMessage;
 import project.message.StoredMessage;
 import project.peer.Peer;
+import project.store.FilesListing;
 import project.store.Store;
 
 import java.util.ArrayList;
@@ -25,16 +26,22 @@ public class ReclaimProtocol {
 
 
     public static void receive_removed(RemovedMessage removedMessage ){
-        //Upon receiving this message, a peer that has a local copy of the chunk shall update its local count of this chunk.
+
+        String file_id = removedMessage.getFile_id();
+        System.out.println("------------------");
+        System.out.println("Received remove: with file_id " + file_id +
+                " and chunk number "+ removedMessage.get_chunk_number());
+        System.out.println("------------------");
+
+        //check if this is this peer file
+        if(FilesListing.get_files_Listing().get_file_name(file_id) == null)
+            return;
+
+        //TODO update local count of this chunk replication degree
+
         // If this count drops below the desired replication degree of that chunk, it shall initiate the chunk backup subprotocol
         // after a random delay uniformly distributed between 0 and 400 ms. If during this delay, a peer receives a PUTCHUNK
         // message for the same file chunk, it should back off and restrain from starting yet another backup subprotocol for that
         // file chunk.
-
-        System.out.println("------------------");
-        System.out.println("Received remove: with file_id " + removedMessage.getFile_id() +
-                " and chunk number "+ removedMessage.get_chunk_number());
-        System.out.println("------------------");
-
     }
 }

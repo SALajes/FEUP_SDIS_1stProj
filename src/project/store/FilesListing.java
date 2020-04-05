@@ -1,6 +1,7 @@
 package project.store;
 
 import java.io.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -10,6 +11,7 @@ public class FilesListing {
 
     private static FilesListing filesListing = new FilesListing();
     private static ConcurrentHashMap<String, String> files;
+    private static ConcurrentHashMap<String, Integer> files_chunks;
 
     //singleton
     private FilesListing() {
@@ -17,7 +19,7 @@ public class FilesListing {
     }
 
     /**
-     *
+     * get all files listed
      * @return an instance FilesListing
      */
     public static FilesListing get_files_Listing() {
@@ -33,10 +35,19 @@ public class FilesListing {
         return files.get(file_name);
     }
 
-    public void add_file(String file_name, String file_id) {
+    public String get_file_name(String file_id) {
+        return String.valueOf(files.entrySet().stream().filter(e -> e.getValue().equals(file_id)).map(Map.Entry:: getKey).findFirst());
+    }
+
+    public Integer get_number_of_chunks(String file_name) {
+        return files_chunks.get(file_name);
+    }
+
+    public void add_file(String file_name, String file_id, Integer number_of_chunks) {
 
         //put returns the previous value associated with key, or null if there was no mapping for key
         String previous_file_id = files.put(file_name, file_id);
+        Integer previous_number_of_chunks = files_chunks.put(file_name, number_of_chunks);
 
         if (previous_file_id != null) {
             System.out.println("This file_name already exists, updating the content.");
@@ -44,8 +55,10 @@ public class FilesListing {
             System.out.println("Deleting chunks from the out of date file");
 
             //TODO delete file from network storage
-            //TODO deleting own stored chunks of this file
-            // for all chunks
+
+            //deletes own files with chunks of the file in the 3 folders ( files, stored, restored)
+            Store.getInstance().delete_file_folder(previous_file_id);
+
             // Store.removeChunk(file_id, chunk_number);
             //TODO unregister chunks of the file
 
@@ -53,8 +66,10 @@ public class FilesListing {
         set_files_disk_info();
     }
 
-    public void delete_file_record(String file_name) {
+    public void delete_file_records(String file_name) {
         files.remove(file_name);
+        files_chunks.remove(file_name);
+        set_files_disk_info();
     }
 
 
