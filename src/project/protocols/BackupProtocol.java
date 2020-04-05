@@ -11,10 +11,10 @@ import java.util.ArrayList;
 public class BackupProtocol {
     public static void send_putchunk(double version, int sender_id, int replication_degree, String file_id, ArrayList<Chunk> chunks){
         //sends putchunks
-        for(int i = 0; i < chunks.size(); i++){
-            PutChunkMessage putchunk = new PutChunkMessage(version, sender_id, file_id, chunks.get(i).chunk_no, replication_degree, chunks.get(i).content);
+        for (Chunk chunk : chunks) {
+            PutChunkMessage putchunk = new PutChunkMessage(version, sender_id, file_id, chunk.chunk_no, replication_degree, chunk.content);
 
-            String chunk_id = file_id + "_" + chunks.get(i).chunk_no;
+            String chunk_id = file_id + "_" + chunk.chunk_no;
 
             Store.getInstance().new_Backup_chunk(chunk_id, replication_degree);
 

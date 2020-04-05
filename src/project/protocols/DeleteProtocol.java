@@ -1,6 +1,5 @@
 package project.protocols;
 
-import project.Macros;
 import project.message.*;
 import project.peer.Peer;
 import project.store.Store;
@@ -26,14 +25,9 @@ public class DeleteProtocol {
         System.out.println("------------------");
 
         String file_id = deleteMessage.getFile_id();
-        Store.getInstance().delete_file_folder( file_id);
 
-        //deletes all chunks
-        for(int i = 0; i < Macros.MAX_NUMBER_CHUNKS; i++ ) {
-            String chunk_id = file_id + "_" + i;
-            Store.getInstance().remove_Backup_chunks_occurrences(chunk_id);
-        }
-
+        //delete all files and records in stored
+        Store.delete_file_folder(file_id);
 
     }
 }

@@ -6,11 +6,13 @@ import project.message.ChunkMessage;
 import project.message.GetChunkMessage;
 import project.message.PutChunkMessage;
 import project.peer.Peer;
+import project.store.FilesListing;
 import project.store.Store;
 
 import java.util.ArrayList;
 
 public class RestoreProtocol {
+
     public static void send_getchunk(double version, Integer sender_id,  String file_id, Integer chunk_no){
         GetChunkMessage getChunkMessage = new GetChunkMessage(version, sender_id, file_id, chunk_no);
 
@@ -50,7 +52,9 @@ public class RestoreProtocol {
 
     }
 
-    public static void receive_chunk(){
+    public static void receive_chunk(ChunkMessage chunkMessage){
 
+        String file_name = FilesListing.get_files_Listing().get_file_name(chunkMessage.getFile_id());
+        Store.getInstance().write_chunk_to_restored_file(file_name,  chunkMessage.getChunk().getBytes(), chunkMessage.get_chunk_no());
     }
 }

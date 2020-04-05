@@ -13,17 +13,19 @@ import java.util.Hashtable;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Store {
-    private static Store store = null;
+    private static Store store = new Store();
 
+    //state of others chunks
     private static Hashtable<String, Pair<Integer,ArrayList<Integer>>> stored_chunks = new Hashtable<>();
     private static Hashtable<String, String> restored_files = new Hashtable<>();
+    //state of our files - key file_id + chunk and value wanted_replication degree and list of peers
     private static ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> backup_chunks_occurrences = new ConcurrentHashMap<>();
 
     private static String peer_directory_path;
     private static String files_directory_path;
     private static String files_info_directory_path;
-    private static String stored_directory_path;
-    private static String stored_info_directory_path;
+    private static String store_directory_path;
+    private static String store_info_directory_path;
     private static String restored_directory_path;
 
     private int space_with_storage = 0; //in bytes
@@ -45,23 +47,20 @@ public class Store {
         peer_directory_path = Peer.id + "_directory/";
         files_directory_path = peer_directory_path + "files/";
         files_info_directory_path = peer_directory_path + "files.txt";
-        stored_directory_path = peer_directory_path + "stored/";
-        stored_info_directory_path = peer_directory_path + "stored.txt";
+        store_directory_path = peer_directory_path + "store/";
+        store_info_directory_path = peer_directory_path + "stored.txt";
         restored_directory_path = peer_directory_path + "restored/";
 
         create_directory(peer_directory_path);
         create_directory(files_directory_path);
         create_empty_file(files_info_directory_path);
-        create_directory(stored_directory_path);
+        create_directory(store_directory_path);
         //if exists return true but doesn't creates a new file
-        create_empty_file(stored_info_directory_path);
+        create_empty_file(store_info_directory_path);
         create_directory(restored_directory_path);
     }
 
     public static Store getInstance(){
-        if(store == null)
-            store = new Store();
-
         return store;
     }
 
@@ -86,7 +85,7 @@ public class Store {
     }
 
     public void set_space_allow(Integer space_allow) {
-        space_allow = space_allow;
+        this.space_allow = space_allow;
 
         //TODO delete necessary chunk to have that space
       /*   while(space_allow < space_with_storage) {
@@ -123,11 +122,30 @@ public class Store {
 
     public static Chunk retrieveChunk(String file_id, int chunk_no){
         if(checkStoredChunk(file_id, chunk_no)) {
-            //TODO: get the chunk information from the chunks saved file
+            Chunk chunk;
+            //get the chunk information from the chunks saved file
+            final String chunk_path = store_directory_path + "/" + file_id + "/" + chunk_no;
+            File file = new File(chunk_path);
+            int chunk_size = (int) file.length();
+            byte[] chunk_data = new byte[chunk_size];
+            try (FileInputStream fileInputStream = new FileInputStream(chunk_path)) {
+                if(fileInputStream.read(chunk_data) < 0)
+                    return null;
+                chunk = new Chunk(chunk_no, chunk_data, chunk_size);
+                return chunk;
+            } catch (IOException e) {
+                System.err.println("Couldn't get chunk "+ chunk_no + " of file " + file_id);
+                e.printStackTrace();
+                return null;
+            }
+
         }
 
+        // Does not have the chunk
         return null;
+
     }
+
 
     /**
      * encodes a file name with a sha-256 cryptographic hash function
@@ -175,11 +193,11 @@ public class Store {
             return false;
         }
 
-        String chunk_dir =  this.stored_directory_path + "/" + file_id + "/";
+        String chunk_directory =  store_directory_path + "/" + file_id + "/";
 
         // Idempotent Method
-        create_directory(chunk_dir);
-        String chunk_path = String.format( chunk_dir + chunk_number);
+        create_directory(chunk_directory);
+        String chunk_path = chunk_directory + chunk_number;
 
         try {
             //FileOutputStream.write() method automatically create a new file and write content to it.
@@ -303,9 +321,13 @@ public class Store {
         }
     }
 
+    /**
+     * deletes folder with chunks of a file passed in the first argument
+     * @param file_id encoded
+     * @return true if successful, and false other wise
+     */
     public static boolean delete_file_folder(String file_id) {
-        File file_directory = new File(stored_directory_path + "/" + file_id);
-        File[] folder_files = null;
+        File file_directory = new File(store_directory_path + "/" + file_id);
 
         if(file_directory == null){
             return false;
@@ -319,7 +341,9 @@ public class Store {
             return false;
         }
 
-        folder_files = file_directory.listFiles();
+        stored_chunks.remove(file_id);
+
+        File[] folder_files = file_directory.listFiles();
         if (folder_files != null && folder_files.length > 0) {
             for (File f : folder_files) {
                 if (!f.delete()) {
@@ -348,7 +372,7 @@ public class Store {
         }
 
         //chunk will be in backup_directory/file_id/chunk_no
-        String chunk_dir =  stored_directory_path + "/" + file_id + "/"+ chunk_number;
+        String chunk_dir =  store_directory_path + "/" + file_id + "/"+ chunk_number;
 
         File chunk_file = new File(chunk_dir);
 
