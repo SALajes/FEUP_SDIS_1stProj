@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FilesListing {
 
     private static FilesListing filesListing = new FilesListing();
-    private static ConcurrentHashMap<String, String> files;
-    private static ConcurrentHashMap<String, Integer> files_chunks;
+    private static ConcurrentHashMap<String, String> files = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Integer> files_chunks = new ConcurrentHashMap<>();
 
     //singleton
     private FilesListing() {
@@ -52,7 +52,7 @@ public class FilesListing {
         if (previous_file_id != null) {
             System.out.println("This file_name already exists, updating the content.");
 
-            System.out.println("Deleting chunks from the out of date file");
+            System.out.println("Deleting " + previous_number_of_chunks + " chunks from the out of date file");
 
             //TODO delete file from network storage
 
@@ -80,7 +80,7 @@ public class FilesListing {
     public boolean set_files_disk_info() {
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(Store.getInstance().get_files_info_directory_path()));
-            objectOutputStream.writeObject(files);
+            objectOutputStream.writeObject(this);
         } catch (Exception e) {
             e.getStackTrace();
             System.out.println("Couldn't get files info to the disk");
@@ -104,7 +104,7 @@ public class FilesListing {
 
         try {
             ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(Store.getInstance().get_files_info_directory_path()));
-            files = (ConcurrentHashMap<String, String>) objectInputStream.readObject();
+            filesListing = (FilesListing) objectInputStream.readObject();
             System.out.println("Files Concurrent map is updated according to disk info");
 
         } catch (Exception ignored) {

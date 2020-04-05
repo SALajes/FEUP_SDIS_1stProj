@@ -11,8 +11,8 @@ import java.util.ArrayList;
 public class BackupProtocol {
     public static void send_putchunk(double version, int sender_id, int replication_degree, String file_id, ArrayList<Chunk> chunks){
         //sends putchunks
-        for(int i = 0; i < chunks.size(); i++){
-            PutChunkMessage putchunk = new PutChunkMessage(version, sender_id, file_id, chunks.get(i).chunk_no, replication_degree, chunks.get(i).content);
+        for (Chunk chunk : chunks) {
+            PutChunkMessage putchunk = new PutChunkMessage(version, sender_id, file_id, chunk.chunk_no, replication_degree, chunk.content);
 
             Runnable task = () -> process_putchunk(putchunk);
 
@@ -23,6 +23,7 @@ public class BackupProtocol {
     public static void process_putchunk(PutChunkMessage putchunk){
         int tries = 1;
         String chunk_id = putchunk.getFile_id() + "_" + putchunk.getChunkNo();
+
         while(tries <= 5){
             Peer.MDB.send_message(putchunk.convert_message());
 

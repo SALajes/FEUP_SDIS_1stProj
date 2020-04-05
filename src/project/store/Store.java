@@ -24,8 +24,8 @@ public class Store {
     private static String peer_directory_path;
     private static String files_directory_path;
     private static String files_info_directory_path;
-    private static String backup_directory_path;
-    private static String backup_info_directory_path;
+    private static String store_directory_path;
+    private static String store_info_directory_path;
     private static String restored_directory_path;
 
     private int space_with_storage = 0; //in bytes
@@ -47,16 +47,16 @@ public class Store {
         peer_directory_path = Peer.id + "_directory/";
         files_directory_path = peer_directory_path + "files/";
         files_info_directory_path = peer_directory_path + "files.txt";
-        backup_directory_path = peer_directory_path + "backup/";
-        backup_info_directory_path = peer_directory_path + "stored.txt";
+        store_directory_path = peer_directory_path + "store/";
+        store_info_directory_path = peer_directory_path + "stored.txt";
         restored_directory_path = peer_directory_path + "restored/";
 
         create_directory(peer_directory_path);
         create_directory(files_directory_path);
         create_empty_file(files_info_directory_path);
-        create_directory(backup_directory_path);
+        create_directory(store_directory_path);
         //if exists return true but doesn't creates a new file
-        create_empty_file(backup_info_directory_path);
+        create_empty_file(store_info_directory_path);
         create_directory(restored_directory_path);
     }
 
@@ -85,7 +85,7 @@ public class Store {
     }
 
     public void set_space_allow(Integer space_allow) {
-        space_allow = space_allow;
+        this.space_allow = space_allow;
 
         //TODO delete necessary chunk to have that space
       /*   while(space_allow < space_with_storage) {
@@ -109,12 +109,13 @@ public class Store {
         if(checkStoredChunk(file_id, chunk_no)) {
             Chunk chunk;
             //get the chunk information from the chunks saved file
-            final String chunk_path = backup_directory_path + "/" + file_id + "/" + chunk_no;
+            final String chunk_path = store_directory_path + "/" + file_id + "/" + chunk_no;
             File file = new File(chunk_path);
             int chunk_size = (int) file.length();
             byte[] chunk_data = new byte[chunk_size];
             try (FileInputStream fileInputStream = new FileInputStream(chunk_path)) {
-                fileInputStream.read(chunk_data);
+                if(fileInputStream.read(chunk_data) < 0)
+                    return null;
                 chunk = new Chunk(chunk_no, chunk_data, chunk_size);
                 return chunk;
             } catch (IOException e) {
@@ -176,7 +177,7 @@ public class Store {
             return false;
         }
 
-        String chunk_directory =  this.backup_directory_path + "/" + file_id + "/";
+        String chunk_directory =  store_directory_path + "/" + file_id + "/";
 
         // Idempotent Method
         create_directory(chunk_directory);
@@ -300,9 +301,13 @@ public class Store {
         }
     }
 
+    /**
+     * deletes folder with chunks of a file passed in the first argument
+     * @param file_id encoded
+     * @return true if successful, and false other wise
+     */
     public static boolean delete_file_folder(String file_id) {
-        File file_directory = new File(backup_directory_path + "/" + file_id);
-        File[] folder_files = null;
+        File file_directory = new File(store_directory_path + "/" + file_id);
 
         if(file_directory == null){
             return false;
@@ -316,7 +321,9 @@ public class Store {
             return false;
         }
 
-        folder_files = file_directory.listFiles();
+        stored_chunks.remove(file_id);
+
+        File[] folder_files = file_directory.listFiles();
         if (folder_files != null && folder_files.length > 0) {
             for (File f : folder_files) {
                 if (!f.delete()) {
@@ -345,7 +352,7 @@ public class Store {
         }
 
         //chunk will be in backup_directory/file_id/chunk_no
-        String chunk_dir =  backup_directory_path + "/" + file_id + "/"+ chunk_number;
+        String chunk_dir =  store_directory_path + "/" + file_id + "/"+ chunk_number;
 
         File chunk_file = new File(chunk_dir);
 
