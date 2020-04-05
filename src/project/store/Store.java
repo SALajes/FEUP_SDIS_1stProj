@@ -415,7 +415,10 @@ public class Store {
     }
 
     public int check_backup_chunks_occurrences(String chunk_id) {
-        return this.backup_chunks_occurrences.get(chunk_id).second.size();
+        if(this.backup_chunks_occurrences.get(chunk_id) != null)
+            return this.backup_chunks_occurrences.get(chunk_id).second.size();
+
+        return -1;
     }
 
     public void remove_Backup_chunks_occurrences(String chunk_id) {

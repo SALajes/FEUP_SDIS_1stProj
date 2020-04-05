@@ -36,7 +36,14 @@ public class FilesListing {
     }
 
     public String get_file_name(String file_id) {
-        return String.valueOf(files.entrySet().stream().filter(e -> e.getValue().equals(file_id)).map(Map.Entry:: getKey).findFirst());
+        if(files.containsValue(file_id)) {
+            for( String key : files.keySet()){
+                if(files.get(key).equals(file_id))
+                    return key;
+
+            }
+        }
+        return null;
     }
 
     public Integer get_number_of_chunks(String file_name) {

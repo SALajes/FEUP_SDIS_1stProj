@@ -22,9 +22,7 @@ import project.store.Store;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
-
     private static double version;
-
     public static int id;
 
     private static String service_access_point;

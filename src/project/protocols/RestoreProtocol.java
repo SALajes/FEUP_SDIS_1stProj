@@ -29,7 +29,7 @@ public class RestoreProtocol {
 
     /**
      * a peer that has a copy of the specified chunk shall send it in the body of a CHUNK message via the MDR channel
-     * @param getChunkMessage
+     * @param getChunkMessage message received
      */
     public static void receive_getchunk(GetChunkMessage getChunkMessage){
         String file_id = getChunkMessage.getFile_id();
@@ -53,8 +53,15 @@ public class RestoreProtocol {
     }
 
     public static void receive_chunk(ChunkMessage chunkMessage){
+        String file_id = chunkMessage.getFile_id();
+        String file_name = FilesListing.get_files_Listing().get_file_name(file_id);
 
-        String file_name = FilesListing.get_files_Listing().get_file_name(chunkMessage.getFile_id());
-        Store.getInstance().write_chunk_to_restored_file(file_name,  chunkMessage.getChunk(), chunkMessage.get_chunk_no());
+
+        String chunk_id = file_id + "_" + 0;
+
+        if(Store.getInstance().check_backup_chunks_occurrences(chunk_id) != -1) {
+            System.out.println(file_name);
+            Store.getInstance().write_chunk_to_restored_file(file_name, chunkMessage.getChunk(), chunkMessage.get_chunk_no());
+        }
     }
 }
