@@ -29,7 +29,7 @@ public class BackupProtocol {
             try{
                 Thread.sleep(1000*tries);
 
-                if(Store.getInstance().checkSize_backup_chunks_occurrences(chunk_id) >= putchunk.getReplicationDegree()){
+                if(Store.getInstance().check_backup_chunks_occurrences(chunk_id) >= putchunk.getReplicationDegree()){
                     break;
                 }
 

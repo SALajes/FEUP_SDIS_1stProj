@@ -15,9 +15,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Store {
     private static Store store = null;
 
-    private static Hashtable<String, Chunk> stored_chunks = new Hashtable<>();
+    private static Hashtable<String, Pair<Integer,ArrayList<Integer>>> stored_chunks = new Hashtable<>();
     private static Hashtable<String, String> restored_files = new Hashtable<>();
-    private static ConcurrentHashMap<String, ArrayList<Integer>> backup_chunks_occurrences = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> backup_chunks_occurrences = new ConcurrentHashMap<>();
 
     private static String peer_directory_path;
     private static String files_directory_path;
@@ -99,25 +99,19 @@ public class Store {
 
     }
 
-    /**
-     *
-     * @param file_id encoded
-     * @param chunk class chunk (with body)
-     */
-    public static void storeChunk(String file_id, Chunk chunk){
-        stored_chunks.put(file_id + "_" + chunk.chunk_no, chunk);
+    public static boolean checkStoredChunk(String file_id, int chunk_no){
+        if(stored_chunks.containsKey(file_id)) {
+            return stored_chunks.get(file_id).second.contains(chunk_no);
+        }
+        else return false;
     }
 
-    /**
-     *
-     * @param file_id encoded
-     * @param chunk_number number of the chunk
-     * @return null if doesn't exists
-     */
-    public static Chunk retrieveChunk(String file_id, int chunk_number){
-        if(stored_chunks.containsKey(file_id + "_" + chunk_number))
-            return stored_chunks.get(file_id + "_" + chunk_number);
-        else return null;
+    public static Chunk retrieveChunk(String file_id, int chunk_no){
+        if(checkStoredChunk(file_id, chunk_no)) {
+            //TODO: get the chunk information from the chunks saved file
+        }
+
+        return null;
     }
 
     /**
@@ -154,7 +148,7 @@ public class Store {
     public boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body) {
 
         //check if the chunk already exists
-        if (retrieveChunk(file_id, chunk_number) != null) {
+        if (checkStoredChunk(file_id, chunk_number)) {
             System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " already exists.");
             return true;
         }
@@ -351,24 +345,31 @@ public class Store {
         return false;
     }
 
+    public void new_Backup_chunk(String chunk_id, int replication_degree) {
+        if(this.backup_chunks_occurrences.contains(chunk_id)){
+            Pair<Integer, ArrayList<Integer>> pair = this.backup_chunks_occurrences.get(chunk_id);
+
+            pair.first = replication_degree;
+
+            this.backup_chunks_occurrences.replace(chunk_id, pair);
+        }
+        else this.backup_chunks_occurrences.put(chunk_id, new Pair<Integer, ArrayList<Integer>>(replication_degree, new ArrayList<>()));
+    }
+
     public void add_Backup_chunks_occurrences(String chunk_id, int peer_id) {
         if(this.backup_chunks_occurrences.contains(chunk_id)){
-            ArrayList<Integer> peer_ids = this.backup_chunks_occurrences.get(chunk_id);
+            Pair<Integer, ArrayList<Integer>> pair = this.backup_chunks_occurrences.get(chunk_id);
 
-            if(peer_ids.contains(peer_id))
+            if(pair.second.contains(peer_id))
                 return;
 
-            peer_ids.add(peer_id);
-            this.backup_chunks_occurrences.replace(chunk_id, peer_ids);
-        }else{
-            ArrayList<Integer> peer_ids = new ArrayList<>();
-            peer_ids.add(peer_id);
-            this.backup_chunks_occurrences.put(chunk_id, peer_ids);
+            pair.second.add(peer_id);
+            this.backup_chunks_occurrences.replace(chunk_id, pair);
         }
     }
 
-    public int checkSize_backup_chunks_occurrences(String chunk_id) {
-        return this.backup_chunks_occurrences.get(chunk_id).size();
+    public int check_backup_chunks_occurrences(String chunk_id) {
+        return this.backup_chunks_occurrences.get(chunk_id).second.size();
     }
 
     public void remove_Backup_chunks_occurrences(String chunk_id) {
@@ -379,3 +380,5 @@ public class Store {
         return files_info_directory_path;
     }
 }
+
+
