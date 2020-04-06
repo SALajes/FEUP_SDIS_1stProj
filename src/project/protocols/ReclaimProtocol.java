@@ -21,7 +21,7 @@ public class ReclaimProtocol {
     }
 
     public static void process_remove_message(RemovedMessage removedMessage){
-
+        Peer.MC.send_message(removedMessage.convert_message());
     }
 
 

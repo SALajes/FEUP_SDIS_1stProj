@@ -69,7 +69,7 @@ public class FilesListing {
             DeleteProtocol.send_delete(Peer.version, Peer.id, previous_file_id );
 
             //deletes own files with chunks of the file in the 3 folders ( files, stored, restored)
-            FileManager.delete_file_folders(previous_file_id);
+            FileManager.delete_files_folders(previous_file_id);
 
             //old file is ours so unregister chunks of the file
             Store.getInstance().remove_stored_chunks(previous_file_id);

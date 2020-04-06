@@ -10,6 +10,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Store {
@@ -71,15 +73,26 @@ public class Store {
     public void set_space_allow(Integer space_allow) {
         this.space_allow = space_allow;
 
-        //TODO delete necessary chunk to have that space
-      /*   while(space_allow < space_with_storage) {
-            String file_id;
-            String chunk_number;
-            //remove chunks updates space with storage
-            removeChunk(file_id, chunk_number);
+        Set<String> keys = stored_chunks.keySet();
 
-        } */
+        //Obtaining iterator over set entries
+        Iterator<String> itr = keys.iterator();
+        String file_id;
 
+        //deletes necessary chunk to have that space
+         while((space_allow < space_with_storage) && itr.hasNext()) {
+             // Getting Key
+             file_id = itr.next();
+             ArrayList<Integer> chunks_nos= stored_chunks.get(file_id).second;
+             for(Integer chunk_no : chunks_nos) {
+                 System.out.println("HEre");
+                 removeChunk(file_id, chunk_no);
+                 remove_stored_chunk(file_id, chunk_no);
+                 if(space_allow >= space_with_storage)
+                     break;
+             }
+
+        }
     }
 
     public boolean checkStoredChunk(String file_id, int chunk_no){
@@ -102,6 +115,15 @@ public class Store {
             Pair pair = new Pair<>(replicationDegree, chunks_stored);
             stored_chunks.put(file_id, pair);
         }
+    }
+
+    private void remove_stored_chunk(String file_id, int chunk_number) {
+        if(stored_chunks.containsKey(file_id)) {
+            Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
+            pair.second.remove(chunk_number);
+            stored_chunks.replace(file_id, pair);
+        }
+
     }
 
     /**
@@ -243,7 +265,7 @@ public class Store {
         }
 
         //chunk will be in backup_directory/file_id/chunk_no
-        String chunk_dir =  store_directory_path + "/" + file_id + "/"+ chunk_number;
+        String chunk_dir =  store_directory_path + file_id + "/"+ chunk_number;
 
         File chunk_file = new File(chunk_dir);
 

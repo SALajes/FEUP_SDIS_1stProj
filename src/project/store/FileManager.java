@@ -113,27 +113,26 @@ public class FileManager {
     }
 
 
-    public static void delete_file_folders(String file_id) {
-        delete_file_folder( new File(Store.getInstance().get_store_directory_path() + file_id) );
+    public static void delete_files_folders(String file_id) {
+        delete_file_folder( Store.getInstance().get_store_directory_path() + file_id );
         Store.getInstance().remove_stored_chunks(file_id);
 
         String file_name = FilesListing.get_files_Listing().get_file_name(file_id);
         if( file_name != null) {
-
-            delete_file_folder( new File(Store.getInstance().get_restored_directory_path() + file_id) );
-            delete_file_folder( new File(Store.getInstance().get_files_directory_path() + file_id) );
+            delete_file_folder( Store.getInstance().get_restored_directory_path() + file_id );
+            delete_file_folder( Store.getInstance().get_files_directory_path() + file_id );
         }
-
-
 
     }
 
     /**
      * deletes folder with chunks of a file passed in the first argument
-     * @param file_directory directory file
+     * @param file_path directory file
      * @return true if successful, and false other wise
      */
-    public static boolean delete_file_folder(File file_directory) {
+    public static boolean delete_file_folder(String file_path) {
+
+        File file_directory = new File(file_path);
 
         if(file_directory == null){
             return false;

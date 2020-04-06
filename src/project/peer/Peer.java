@@ -156,7 +156,8 @@ public class Peer implements RemoteInterface {
 
         //remove file of own records and files
         Store.getInstance().remove_Backup_chunks_occurrences(file_id);
-        FileManager.delete_file_folders(file_id);
+
+        FileManager.delete_file_folder(Store.getInstance().get_restored_directory_path() + file_name);
 
         // Remove entry with the file_name and correspond file_id from allFiles
         FilesListing.get_files_Listing().delete_file_records(file_name);
