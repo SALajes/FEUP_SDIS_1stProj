@@ -17,12 +17,13 @@ import project.message.InvalidMessageException;
 import project.protocols.BackupProtocol;
 import project.protocols.DeleteProtocol;
 import project.protocols.RestoreProtocol;
+import project.store.FileManager;
 import project.store.FilesListing;
 import project.store.Store;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
-    private static double version;
+    public static double version;
     public static int id;
 
     private static String service_access_point;
@@ -32,7 +33,7 @@ public class Peer implements RemoteInterface {
     public static MulticastDataBackupChannel MDB;
     public static MulticastDataRecoveryChannel MDR;
 
-    public Peer(String MC_address, int MC_port, String MDB_address, int MDB_port, String MDR_address, int MDR_port) throws RemoteException {
+    public Peer(String MC_address, int MC_port, String MDB_address, int MDB_port, String MDR_address, int MDR_port)  {
         MC = new MulticastControlChannel(MC_address, MC_port);
         MDB = new MulticastDataBackupChannel(MDB_address, MDB_port);
         MDR = new MulticastDataRecoveryChannel(MDR_address, MDR_port);
@@ -79,11 +80,10 @@ public class Peer implements RemoteInterface {
         } catch (Exception e) {
             System.err.println("Peer exception: " + e.toString());
             e.printStackTrace();
-            return;
         }
     }
 
-    public int backup(String file_path, int replication_degree) throws RemoteException, InvalidMessageException {
+    public int backup(String file_path, int replication_degree) throws InvalidMessageException {
         if(replication_degree <= 0 || replication_degree > 9)
             throw new InvalidMessageException("Replication degree is invalid");
 
@@ -93,13 +93,13 @@ public class Peer implements RemoteInterface {
 
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
 
-        String file_id = Store.getInstance().createFileId(file);
+        String file_id = FileManager.createFileId(file);
 
         Integer number_of_chunks = (int) Math.ceil((float) file.length() / Macros.CHUNK_MAX_SIZE );
 
         FilesListing.get_files_Listing().add_file(file.getName(), file_id, number_of_chunks);
 
-        BackupProtocol.send_putchunk(this.version, Peer.id, replication_degree, file_id, chunkFactory.get_chunks());
+        BackupProtocol.send_putchunk(Peer.version, Peer.id, replication_degree, file_id, chunkFactory.get_chunks());
 
         return 0;
     }
@@ -121,7 +121,7 @@ public class Peer implements RemoteInterface {
             return -1;
         }
 
-        Store.getInstance().create_empty_file_for_restoring( file_name );
+        FileManager.create_empty_file_for_restoring( file_name );
 
         Integer number_of_chunks = FilesListing.get_files_Listing().get_number_of_chunks(file_name);
         //Restore all chunks
@@ -133,13 +133,11 @@ public class Peer implements RemoteInterface {
     }
 
     /**
-     *
-     * @param file_path
-     * @throws RemoteException
      * The client shall specify the file to delete by its pathname.
+     * @param file_path of the file that is going to be deleted
      */
     @Override
-    public int delete(String file_path) throws RemoteException {
+    public int delete(String file_path)  {
 
         //a peer should remove from its backing store all chunks belonging to the specified file.
         final String file_name = new File(file_path).getName();
@@ -157,7 +155,7 @@ public class Peer implements RemoteInterface {
 
         //remove file of own records and files
         Store.getInstance().remove_Backup_chunks_occurrences(file_id);
-        Store.getInstance().delete_file_folder(file_id);
+        FileManager.delete_file_folder(file_id);
 
         // Remove entry with the file_name and correspond file_id from allFiles
         FilesListing.get_files_Listing().delete_file_records(file_name);
