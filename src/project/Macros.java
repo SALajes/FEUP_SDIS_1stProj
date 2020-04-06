@@ -11,4 +11,5 @@ public class Macros {
     public static final int FILE_MAX_SIZE = 64000000;
     public static final int MAX_NUMBER_CHUNKS = 1000000;
     public static final int TTL = 1;
+    public static final int MAX_MESSAGE_SIZE = 64200;
 }

@@ -52,7 +52,9 @@ public class MessageParser {
      */
     private static byte[] getMessageBody(byte[] message, int message_length, int first_CRLF_position){
         int index = first_CRLF_position + 4;
-        return copyOfRange(message, index, message_length - index);
+        byte[] body = copyOfRange(message, index, message_length - index);
+        System.out.println("BODY RECEIVED IN PUTCHUNK (" + body.length + ")");
+        return body;
     }
 
     /**

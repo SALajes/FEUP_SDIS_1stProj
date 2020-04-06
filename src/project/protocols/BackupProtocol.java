@@ -28,9 +28,11 @@ public class BackupProtocol {
         int tries = 1;
 
         System.out.println("BODY SENT IN PUTCHUNK (" + putchunk.getChunk().length + ")");
+        byte[] message = putchunk.convert_message();
 
         while(tries <= 5){
-            Peer.MDB.send_message(putchunk.convert_message());
+            Peer.MDB.send_message(message);
+            System.out.println("PUTCHUNK SENT (" + message.length + ")");
 
             try{
                 Thread.sleep(1000*tries);
