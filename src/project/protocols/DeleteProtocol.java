@@ -2,6 +2,7 @@ package project.protocols;
 
 import project.message.*;
 import project.peer.Peer;
+import project.store.FileManager;
 import project.store.Store;
 
 public class DeleteProtocol {
@@ -27,7 +28,7 @@ public class DeleteProtocol {
         String file_id = deleteMessage.getFile_id();
 
         //delete all files and records in stored
-        Store.delete_file_folder(file_id);
+        FileManager.delete_file_folder(file_id);
 
     }
 }

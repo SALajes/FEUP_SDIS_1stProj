@@ -1,5 +1,9 @@
 package project.store;
 
+import project.peer.Peer;
+import project.protocols.BackupProtocol;
+import project.protocols.DeleteProtocol;
+
 import java.io.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,13 +65,14 @@ public class FilesListing {
 
             System.out.println("Deleting " + previous_number_of_chunks + " chunks from the out of date file");
 
-            //TODO delete file from network storage
+            //deletes file from network storage
+            DeleteProtocol.send_delete(Peer.version, Peer.id, file_id );
 
             //deletes own files with chunks of the file in the 3 folders ( files, stored, restored)
-            Store.getInstance().delete_file_folder(previous_file_id);
+            FileManager.delete_file_folder(previous_file_id);
 
-            // Store.removeChunk(file_id, chunk_number);
-            //TODO unregister chunks of the file
+            //old file is ours so unregister chunks of the file
+            Store.getInstance().remove_stored_chunks(file_id);
 
         }
         set_files_disk_info();

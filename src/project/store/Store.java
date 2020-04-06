@@ -16,10 +16,10 @@ public class Store {
     private static Store store = new Store();
 
     //state of others chunks
-    private static Hashtable<String, Pair<Integer,ArrayList<Integer>>> stored_chunks = new Hashtable<>();
-    private static Hashtable<String, String> restored_files = new Hashtable<>();
+    private Hashtable<String, Pair<Integer,ArrayList<Integer>>> stored_chunks = new Hashtable<>();
+    private Hashtable<String, String> restored_files = new Hashtable<>();
     //state of our files - key file_id + chunk and value wanted_replication degree and list of peers
-    private static ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> backup_chunks_occurrences = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> backup_chunks_occurrences = new ConcurrentHashMap<>();
 
     private static String peer_directory_path;
     private static String files_directory_path;
@@ -51,37 +51,21 @@ public class Store {
         store_info_directory_path = peer_directory_path + "stored.txt";
         restored_directory_path = peer_directory_path + "restored/";
 
-        create_directory(peer_directory_path);
-        create_directory(files_directory_path);
-        create_empty_file(files_info_directory_path);
-        create_directory(store_directory_path);
+        FileManager.create_directory(peer_directory_path);
+        FileManager.create_directory(files_directory_path);
+        FileManager.create_empty_file(files_info_directory_path);
+        FileManager.create_directory(store_directory_path);
         //if exists return true but doesn't creates a new file
-        create_empty_file(store_info_directory_path);
-        create_directory(restored_directory_path);
+        FileManager.create_empty_file(store_info_directory_path);
+        FileManager.create_directory(restored_directory_path);
     }
 
     public static Store getInstance(){
         return store;
     }
 
-
-    /**
-     * Idempotent Method that creates a directory given the path
-     * @return success if directory was or is created and false if not
-     */
-    public boolean create_directory(String directory_path) {
-
-        File directory = new File(directory_path);
-        if (!directory.exists()) {
-            //mkdirs() returns true if created and false on failure or if exists
-            if (directory.mkdir()) {
-                return true;
-            } else {
-                System.out.println("Directory " + directory + " wasn't created!");
-                return false;
-            }
-        }
-        return true;
+    public void remove_stored_chunks(String file_id ){
+        stored_chunks.remove(file_id);
     }
 
     public void set_space_allow(Integer space_allow) {
@@ -98,7 +82,7 @@ public class Store {
 
     }
 
-    public static boolean checkStoredChunk(String file_id, int chunk_no){
+    public boolean checkStoredChunk(String file_id, int chunk_no){
         if(stored_chunks.containsKey(file_id)) {
             return stored_chunks.get(file_id).second.contains(chunk_no);
         }
@@ -120,7 +104,7 @@ public class Store {
         }
     }
 
-    public static Chunk retrieveChunk(String file_id, int chunk_no){
+    public Chunk retrieveChunk(String file_id, int chunk_no){
         if(checkStoredChunk(file_id, chunk_no)) {
             Chunk chunk;
             //get the chunk information from the chunks saved file
@@ -146,37 +130,12 @@ public class Store {
 
     }
 
-
-    /**
-     * encodes a file name with a sha-256 cryptographic hash function
-     * @param file used to get name and lastModified date
-     * @return file id
-     */
-    public static String createFileId(File file) {
-
-        String file_name = file.getName();
-
-        //encoded file name uses the file.lastModified() that ensures that a modified file has a different fileId
-        String file_name_to_encode = file_name + file.lastModified();
-
-        //identifier is obtained by applying SHA256, a cryptographic hash function, to some bit string.
-        MessageDigest digest = null;
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        byte[] hash = digest.digest(file_name_to_encode.getBytes(StandardCharsets.UTF_8));
-
-        return String.valueOf(hash);
-    }
-
     /**
      * Given the chunk_body ( the data ), stores it in a file
      * @param file_id encoded
      * @param chunk_number number of the chunk
      * @param chunk_body data
-     * @param replicationDegree
+     * @param replicationDegree wanted replication degree
      * @return true if successful or false otherwise
      */
     public boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, int replicationDegree) {
@@ -196,7 +155,7 @@ public class Store {
         String chunk_directory =  store_directory_path + "/" + file_id + "/";
 
         // Idempotent Method
-        create_directory(chunk_directory);
+        FileManager.create_directory(chunk_directory);
         String chunk_path = chunk_directory + chunk_number;
 
         try {
@@ -216,8 +175,6 @@ public class Store {
        this.AddToSpace_with_storage(chunk_body.length);
         return true;
     }
-
-
 
     /**
      * used to check if there is space to store a new chunk
@@ -263,97 +220,7 @@ public class Store {
         this.space_with_storage -= space_with_storage;
     }
 
-    /**
-     * Creates an empty file to start the restoring procedure or the backup
-     * @return true if successful, and false otherwise
-     */
-    public boolean create_empty_file_for_restoring(String file_name ) {
-        String restore_file_path =  restored_directory_path + "/" + file_name;
-        return create_empty_file(restore_file_path);
-    }
 
-    /**
-     * Creates an empty file to start the restoring procedure or the backup/info file
-     * if exists return true but doesn't creates a new file
-     * @param file_path path of the file that is being created
-     */
-    public boolean create_empty_file(String file_path) {
-
-        try {
-            File file = new File(file_path);
-            if(file.exists())
-                return true;
-
-            if(file.createNewFile()) {
-                System.out.println("File: " + file + " was created");
-                return true;
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
-            System.err.println("Couldn't create an empty file to start restoring");
-            return false;
-        }
-        return false;
-    }
-
-
-    /**
-     * This functions append the body of a chunk (file data) in the position desired ( calculated with chunk number)
-     * Used for restoring a file with a certain given filename
-     * @param file_name name of the file
-     * @param chunk_data the array with the bytes to put
-     * @param chunk_number number of the chunk
-     * @return true if success and false otherwise
-     */
-    public boolean write_chunk_to_restored_file(String file_name, byte[] chunk_data, int chunk_number) {
-
-        String file_path =  restored_directory_path + "/" + file_name;
-
-        //Random access file offers a seek feature that can go directly to a particular position
-        try (RandomAccessFile file = new RandomAccessFile(file_path, "rw")) {
-            file.seek(chunk_number * Macros.CHUNK_MAX_SIZE);
-            file.write(chunk_data);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Couldn't append chunk number " + chunk_number + " to file " + file_name + ".");
-            return false;
-        }
-    }
-
-    /**
-     * deletes folder with chunks of a file passed in the first argument
-     * @param file_id encoded
-     * @return true if successful, and false other wise
-     */
-    public static boolean delete_file_folder(String file_id) {
-        File file_directory = new File(store_directory_path + "/" + file_id);
-
-        if(file_directory == null){
-            return false;
-        }
-
-        if (file_directory.isFile()) {
-            return file_directory.delete();
-        }
-
-        if (!file_directory.isDirectory()) {
-            return false;
-        }
-
-        stored_chunks.remove(file_id);
-
-        File[] folder_files = file_directory.listFiles();
-        if (folder_files != null && folder_files.length > 0) {
-            for (File f : folder_files) {
-                if (!f.delete()) {
-                    return false;
-                }
-            }
-        }
-
-        return file_directory.delete();
-    }
 
     /**
      * Deletes a chunk
@@ -421,12 +288,32 @@ public class Store {
         return -1;
     }
 
+    public void remove_Backup_chunk_occurrence(String chunk_id, Integer peer_id) {
+        Pair<Integer,ArrayList<Integer>> value = this.backup_chunks_occurrences.get(chunk_id);
+
+        if(value != null ){
+            ArrayList<Integer> peersList = value.second;
+            peersList.remove(peer_id);
+            Pair<Integer, ArrayList<Integer>> pair = new Pair<>(value.first, peersList);
+            this.backup_chunks_occurrences.replace(chunk_id, pair);
+        }
+
+    }
+
     public void remove_Backup_chunks_occurrences(String chunk_id) {
         this.backup_chunks_occurrences.remove(chunk_id);
     }
 
-    public static String get_files_info_directory_path() {
+    public String get_files_info_directory_path() {
         return files_info_directory_path;
+    }
+
+    public String get_restored_directory_path() {
+        return restored_directory_path;
+    }
+
+    public String get_store_directory_path() {
+        return store_directory_path;
     }
 }
 

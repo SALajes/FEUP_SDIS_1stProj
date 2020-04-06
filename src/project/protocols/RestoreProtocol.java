@@ -6,6 +6,7 @@ import project.message.ChunkMessage;
 import project.message.GetChunkMessage;
 import project.message.PutChunkMessage;
 import project.peer.Peer;
+import project.store.FileManager;
 import project.store.FilesListing;
 import project.store.Store;
 
@@ -61,7 +62,7 @@ public class RestoreProtocol {
 
         if(Store.getInstance().check_backup_chunks_occurrences(chunk_id) != -1) {
             System.out.println(file_name);
-            Store.getInstance().write_chunk_to_restored_file(file_name, chunkMessage.getChunk(), chunkMessage.get_chunk_no());
+            FileManager.write_chunk_to_restored_file(file_name, chunkMessage.getChunk(), chunkMessage.get_chunk_no());
         }
     }
 }
