@@ -16,11 +16,12 @@ public class MulticastDataBackupChannel extends Channel {
     @Override
     public void readable_message(DatagramPacket packet) {
         try {
-            byte[] raw_message = packet.getData();
+
+            final byte[] raw_message = packet.getData();
 
             System.out.println("PUTCHUNK RECEIVED RAW (" + raw_message.length + ")");
             System.out.println("PUTCHUNK RECEIVED PACKET (" + packet.getLength() + ")");
-            BaseMessage message = MessageParser.parseMessage(raw_message, raw_message.length);
+            BaseMessage message = MessageParser.parseMessage(raw_message, packet.getLength());
 
             if(message.getSender_id() == Peer.id){
                 return;

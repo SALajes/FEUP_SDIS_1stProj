@@ -52,8 +52,7 @@ public class MessageParser {
      */
     private static byte[] getMessageBody(byte[] message, int message_length, int first_CRLF_position){
         int index = first_CRLF_position + 4;
-
-        System.out.println("");
+        
         // copyOfRange(byte[] original, int starting_index, int ending_index)
         byte[] body = copyOfRange(message, index, message_length);
         System.out.println("BODY RECEIVED IN PUTCHUNK (" + body.length + ")");
@@ -69,7 +68,7 @@ public class MessageParser {
      */
     public static BaseMessage parseMessage(byte[] message, int message_length) throws InvalidMessageException {
         int first_CRLF_position = getCRLFPosition(message, message_length);
-        
+
         if (first_CRLF_position < 0) {
             throw new InvalidMessageException("Received invalid message: no CRLF");
         }
