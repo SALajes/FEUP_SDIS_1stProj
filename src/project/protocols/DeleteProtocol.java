@@ -28,7 +28,7 @@ public class DeleteProtocol {
         String file_id = deleteMessage.getFile_id();
 
         //delete all files and records in stored
-        FileManager.delete_file_folder(file_id);
+        FileManager.delete_file_folders(file_id);
 
     }
 }

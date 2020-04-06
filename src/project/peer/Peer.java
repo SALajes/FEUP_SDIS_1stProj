@@ -154,11 +154,9 @@ public class Peer implements RemoteInterface {
         //sends message REMOVE to all peers
         DeleteProtocol.send_delete(Peer.version, Peer.id, file_id);
 
-
-
         //remove file of own records and files
         Store.getInstance().remove_Backup_chunks_occurrences(file_id);
-        FileManager.delete_file_folder(file_id);
+        FileManager.delete_file_folders(file_id);
 
         // Remove entry with the file_name and correspond file_id from allFiles
         FilesListing.get_files_Listing().delete_file_records(file_name);

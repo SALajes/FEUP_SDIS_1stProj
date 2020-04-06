@@ -226,8 +226,6 @@ public class Store {
         this.space_with_storage -= space_with_storage;
     }
 
-
-
     /**
      * Deletes a chunk
      * @param file_id encoded
@@ -320,6 +318,10 @@ public class Store {
 
     public String get_store_directory_path() {
         return store_directory_path;
+    }
+
+    public String get_files_directory_path() {
+        return files_directory_path;
     }
 }
 

@@ -113,13 +113,27 @@ public class FileManager {
     }
 
 
+    public static void delete_file_folders(String file_id) {
+        delete_file_folder( new File(Store.getInstance().get_store_directory_path() + file_id) );
+        Store.getInstance().remove_stored_chunks(file_id);
+
+        String file_name = FilesListing.get_files_Listing().get_file_name(file_id);
+        if( file_name != null) {
+
+            delete_file_folder( new File(Store.getInstance().get_restored_directory_path() + file_id) );
+            delete_file_folder( new File(Store.getInstance().get_files_directory_path() + file_id) );
+        }
+
+
+
+    }
+
     /**
      * deletes folder with chunks of a file passed in the first argument
-     * @param file_id encoded
+     * @param file_directory directory file
      * @return true if successful, and false other wise
      */
-    public static boolean delete_file_folder(String file_id) {
-        File file_directory = new File(Store.getInstance().get_store_directory_path() + file_id);
+    public static boolean delete_file_folder(File file_directory) {
 
         if(file_directory == null){
             return false;
@@ -133,9 +147,8 @@ public class FileManager {
             return false;
         }
 
-        Store.getInstance().remove_stored_chunks(file_id);
-
         File[] folder_files = file_directory.listFiles();
+        System.out.println("Length " + folder_files.length);
         if (folder_files != null && folder_files.length > 0) {
             for (File f : folder_files) {
                 if (!f.delete()) {
