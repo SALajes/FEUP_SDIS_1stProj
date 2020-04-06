@@ -96,7 +96,7 @@ public class FileManager {
      * @param chunk_number number of the chunk
      * @return true if success and false otherwise
      */
-    public static boolean write_chunk_to_restored_file(String file_name, byte[] chunk_data, int chunk_number) {
+    public static synchronized boolean write_chunk_to_restored_file(String file_name, byte[] chunk_data, int chunk_number) {
 
         String file_path = Store.getInstance().get_restored_directory_path() + "/" + file_name;
 

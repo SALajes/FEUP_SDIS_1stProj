@@ -104,6 +104,12 @@ public class Store {
         }
     }
 
+    /**
+     * get chunk from stored directory
+     * @param file_id encoded
+     * @param chunk_no number of the chunk we want to retrieve
+     * @return wanted chunk data
+     */
     public Chunk retrieveChunk(String file_id, int chunk_no){
         if(checkStoredChunk(file_id, chunk_no)) {
             Chunk chunk;
