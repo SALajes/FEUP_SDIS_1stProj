@@ -32,7 +32,7 @@ public class BackupProtocol {
 
         while(tries <= 5){
             Peer.MDB.send_message(message);
-            System.out.println("PUTCHUNK SENT (" + message.length + ")");
+            System.out.println("PUTCHUNK SENT (" + message.length + ") of try " + tries);
 
             try{
                 Thread.sleep(1000*tries);
