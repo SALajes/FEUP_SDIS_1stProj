@@ -91,14 +91,13 @@ public class Peer implements RemoteInterface {
 
         File file = new File(file_path);
 
-        ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
+
 
         String file_id = FileManager.createFileId(file);
-
         Integer number_of_chunks = (int) Math.ceil((float) file.length() / Macros.CHUNK_MAX_SIZE );
-
         FilesListing.get_files_Listing().add_file(file.getName(), file_id, number_of_chunks);
 
+        ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
         BackupProtocol.send_putchunk(Peer.version, Peer.id, replication_degree, file_id, chunkFactory.get_chunks());
 
         return 0;
@@ -126,7 +125,7 @@ public class Peer implements RemoteInterface {
         Integer number_of_chunks = FilesListing.get_files_Listing().get_number_of_chunks(file_name);
         //Restore all chunks
         for(int i = 0; i < number_of_chunks; i++) {
-            RestoreProtocol.send_getchunk(version, Peer.id, file_id, i);
+            RestoreProtocol.send_getchunk(Peer.version, Peer.id, file_id, i);
         }
 
         return 0;
@@ -143,7 +142,9 @@ public class Peer implements RemoteInterface {
         final String file_name = new File(file_path).getName();
 
         //gets the file_id from the entry with key file_name form allFiles
-        final String file_id = FilesListing.get_files_Listing().get_file_id(file_name) ;
+        final String file_id = FilesListing.get_files_Listing().get_file_id(file_name);
+
+        System.out.println("Deleting folder " + file_id);
 
         if (file_id == null) {
             System.err.println("File name was't find, cannot delete file that wasn't been backup");
@@ -151,7 +152,9 @@ public class Peer implements RemoteInterface {
         }
 
         //sends message REMOVE to all peers
-        DeleteProtocol.send_delete(version, id, file_id);
+        DeleteProtocol.send_delete(Peer.version, Peer.id, file_id);
+
+
 
         //remove file of own records and files
         Store.getInstance().remove_Backup_chunks_occurrences(file_id);

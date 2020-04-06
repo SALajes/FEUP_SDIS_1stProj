@@ -36,6 +36,7 @@ public abstract class BaseMessage {
         else{
             byte[] header_bytes = header.getBytes();
             byte[] message = new byte[this.chunk.length + header_bytes.length];
+
             System.arraycopy(header_bytes, 0, message, 0, header_bytes.length);
             System.arraycopy(this.chunk, 0, message, header_bytes.length, this.chunk.length);
             return message;

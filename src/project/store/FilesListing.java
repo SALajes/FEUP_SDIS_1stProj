@@ -66,13 +66,13 @@ public class FilesListing {
             System.out.println("Deleting " + previous_number_of_chunks + " chunks from the out of date file");
 
             //deletes file from network storage
-            DeleteProtocol.send_delete(Peer.version, Peer.id, file_id );
+            DeleteProtocol.send_delete(Peer.version, Peer.id, previous_file_id );
 
             //deletes own files with chunks of the file in the 3 folders ( files, stored, restored)
             FileManager.delete_file_folder(previous_file_id);
 
             //old file is ours so unregister chunks of the file
-            Store.getInstance().remove_stored_chunks(file_id);
+            Store.getInstance().remove_stored_chunks(previous_file_id);
 
         }
         set_files_disk_info();
