@@ -43,10 +43,16 @@ public class ReclaimProtocol {
             //update local count of this chunk replication degree
             Store.getInstance().remove_Backup_chunk_occurrence(chunk_id, removedMessage.getSender_id());
 
-            // If this count drops below the desired replication degree of that chunk, it shall initiate the chunk backup subprotocol
+            // TODO If this count drops below the desired replication degree of that chunk, it shall initiate the chunk backup subprotocol
             // after a random delay uniformly distributed between 0 and 400 ms. If during this delay, a peer receives a PUTCHUNK
             // message for the same file chunk, it should back off and restrain from starting yet another backup subprotocol for that
             // file chunk.
+          /*  if(!Store.getInstance().has_replication_degree(chunk_id)) {
+
+            } */
+
+
+
         }
     }
 }

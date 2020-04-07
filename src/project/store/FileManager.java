@@ -120,7 +120,8 @@ public class FileManager {
         String file_name = FilesListing.get_files_Listing().get_file_name(file_id);
         if( file_name != null) {
             delete_file_folder( Store.getInstance().get_restored_directory_path() + file_id );
-            delete_file_folder( Store.getInstance().get_files_directory_path() + file_id );
+            //You should not delete the original file, when you execute the Delete protocol
+            //So the folder files isn't deleted
         }
 
     }

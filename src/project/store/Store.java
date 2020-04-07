@@ -83,15 +83,15 @@ public class Store {
          while((space_allow < space_with_storage) && itr.hasNext()) {
              // Getting Key
              file_id = itr.next();
-             ArrayList<Integer> chunks_nos= stored_chunks.get(file_id).second;
-             for(Integer chunk_no : chunks_nos) {
-                 System.out.println("HEre");
-                 removeChunk(file_id, chunk_no);
-                 remove_stored_chunk(file_id, chunk_no);
-                 if(space_allow >= space_with_storage)
-                     break;
-             }
 
+             ArrayList<Integer> chunks_nos = new ArrayList<Integer>(stored_chunks.get(file_id).second);
+
+             for(Integer chunk_number : chunks_nos) {
+                 removeChunk(file_id, chunk_number);
+                 if(space_allow >= space_with_storage){
+                     return;
+                 }
+             }
         }
     }
 
@@ -106,8 +106,8 @@ public class Store {
         if(stored_chunks.containsKey(file_id)) {
             Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
             pair.second.add(chunk_number);
-
             stored_chunks.replace(file_id, pair);
+
         }
         else {
             ArrayList<Integer> chunks_stored = new ArrayList<>();
@@ -117,13 +117,20 @@ public class Store {
         }
     }
 
-    private void remove_stored_chunk(String file_id, int chunk_number) {
+    private void remove_stored_chunk(String file_id, Integer chunk_number) {
+
         if(stored_chunks.containsKey(file_id)) {
             Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
-            pair.second.remove(chunk_number);
-            stored_chunks.replace(file_id, pair);
-        }
 
+            if(stored_chunks.get(file_id).second.size() == 1) {
+                System.out.println("No more chunks of that file, removing folder of file " + file_id);
+                stored_chunks.remove(file_id);
+                FileManager.delete_file_folder( this.get_store_directory_path() + file_id);
+            } else {
+                pair.second.remove(chunk_number);
+                stored_chunks.replace(file_id, pair);
+            }
+        }
     }
 
     /**
@@ -180,7 +187,7 @@ public class Store {
             return false;
         }
 
-        String chunk_directory =  store_directory_path + "/" + file_id + "/";
+        String chunk_directory =  store_directory_path + file_id + "/";
 
         // Idempotent Method
         FileManager.create_directory(chunk_directory);
@@ -259,7 +266,7 @@ public class Store {
         System.out.println("Deleting chunk "+ chunk_number + " with id:" + file_id);
 
         //check if the chunk exists
-        if (retrieveChunk(file_id, chunk_number) == null) {
+        if (!checkStoredChunk(file_id, chunk_number)) {
             System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " doesn't exists.");
             return true;
         }
@@ -275,11 +282,18 @@ public class Store {
         }
 
         if (chunk_file.delete()) {
+
             this.remove_space_with_storage((int) chunk_file.length());
+            //removes from stored chunks Hashtable
+            remove_stored_chunk(file_id, chunk_number);
             return true;
         }
 
         return false;
+    }
+
+    public boolean has_replication_degree(String chunk_id) {
+        return (check_backup_chunks_occurrences(chunk_id) >= this.backup_chunks_occurrences.get(chunk_id).first);
     }
 
     public void new_Backup_chunk(String chunk_id, int replication_degree) {
