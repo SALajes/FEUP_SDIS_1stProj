@@ -3,6 +3,7 @@ package project.channel;
 import project.Macros;
 import project.message.BaseMessage;
 import project.message.InvalidMessageException;
+import project.peer.Peer;
 
 import java.io.IOException;
 import java.net.*;
@@ -41,7 +42,7 @@ public abstract class Channel implements Runnable {
         }
     }
 
-    public abstract void readable_message(DatagramPacket packet);
+    protected abstract void readable_message(DatagramPacket packet);
 
     @Override
     public void run(){
@@ -58,7 +59,9 @@ public abstract class Channel implements Runnable {
 
                 socket.receive(packet);
 
-                readable_message(packet);
+                Runnable read_message_task = () -> readable_message(packet);
+
+                Peer.channel_executor.submit(read_message_task);
             }
         } catch (IOException e) {
             e.printStackTrace();

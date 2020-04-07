@@ -54,9 +54,7 @@ public class MessageParser {
         int index = first_CRLF_position + 4;
 
         // copyOfRange(byte[] original, int starting_index, int ending_index)
-        byte[] body = copyOfRange(message, index, message_length);
-        System.out.println("BODY RECEIVED IN PUTCHUNK (" + body.length + ")");
-        return body;
+        return copyOfRange(message, index, message_length);
     }
 
     /**

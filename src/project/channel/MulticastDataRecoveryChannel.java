@@ -14,7 +14,7 @@ public class MulticastDataRecoveryChannel extends Channel {
     }
 
     @Override
-    public void readable_message(DatagramPacket packet) {
+    protected void readable_message(DatagramPacket packet) {
         try {
             byte [] raw_message = packet.getData();
             BaseMessage message = MessageParser.parseMessage(raw_message, packet.getLength());

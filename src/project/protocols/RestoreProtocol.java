@@ -11,21 +11,23 @@ import project.store.FilesListing;
 import project.store.Store;
 
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class RestoreProtocol {
 
-    public static void send_getchunk(double version, Integer sender_id,  String file_id, Integer chunk_no){
-        GetChunkMessage getChunkMessage = new GetChunkMessage(version, sender_id, file_id, chunk_no);
+    public static void send_getchunk(double version, Integer sender_id,  String file_id, int number_of_chunks){
+        //Restore all chunks
+        for(int i = 0; i < number_of_chunks; i++) {
+            GetChunkMessage getChunkMessage = new GetChunkMessage(version, sender_id, file_id, i);
 
-        Runnable task = () -> process_get_chunk(getChunkMessage);
-        new Thread(task).start();
+            Runnable task = () -> process_getchunk(getChunkMessage);
+            Peer.scheduled_executor.execute(task);
+        }
     }
 
-    public static void process_get_chunk(GetChunkMessage getChunkMessage){
-
-        String chunk_id = getChunkMessage.getFile_id() + "_" + getChunkMessage.get_chunk_no();
+    public static void process_getchunk(GetChunkMessage getChunkMessage){
         Peer.MC.send_message(getChunkMessage.convert_message());
-
     }
 
     /**
@@ -37,32 +39,34 @@ public class RestoreProtocol {
         Integer chunk_number = getChunkMessage.get_chunk_no();
         Chunk chunk = Store.getInstance().retrieveChunk( file_id, chunk_number);
         send_chunk(getChunkMessage.getVersion(), Peer.id, file_id, chunk_number, chunk.content);
-        //send chunk
     }
 
     public static void send_chunk(double version, Integer sender_id,  String file_id, Integer chunk_no, byte[] chunk_data){
         ChunkMessage chunkMessage = new ChunkMessage(version, sender_id, file_id, chunk_no, chunk_data);
 
-        Runnable task = () -> process_chunk(chunkMessage);
-        new Thread(task).start();
+        String chunk_id = chunkMessage.getFile_id() + "_" + chunkMessage.get_chunk_no();
+        Store.getInstance().add_getchunk_reply(chunk_id);
 
+        Runnable task = () -> process_chunk(chunkMessage, chunk_id);
+        Peer.scheduled_executor.schedule(task, new Random().nextInt(401), TimeUnit.MILLISECONDS);
     }
 
-    public static void process_chunk(ChunkMessage chunkMessage){
-        Peer.MDR.send_message(chunkMessage.convert_message());
-
+    public static void process_chunk(ChunkMessage chunkMessage, String chunk_id){
+        if(!Store.getInstance().get_getchunk_reply(chunk_id))
+            Peer.MDR.send_message(chunkMessage.convert_message());
+        Store.getInstance().remove_getchunk_reply(chunk_id);
     }
 
     public static void receive_chunk(ChunkMessage chunkMessage){
         String file_id = chunkMessage.getFile_id();
         String file_name = FilesListing.get_files_Listing().get_file_name(file_id);
 
-
-        String chunk_id = file_id + "_" + 0;
+        String chunk_id = file_id + "_" + chunkMessage.get_chunk_no();
 
         if(Store.getInstance().check_backup_chunks_occurrences(chunk_id) != -1) {
             System.out.println(file_name);
             FileManager.write_chunk_to_restored_file(file_name, chunkMessage.getChunk(), chunkMessage.get_chunk_no());
         }
+        Store.getInstance().check_getchunk_reply(chunk_id);
     }
 }

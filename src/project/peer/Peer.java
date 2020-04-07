@@ -7,6 +7,10 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 import project.Macros;
@@ -33,10 +37,20 @@ public class Peer implements RemoteInterface {
     public static MulticastDataBackupChannel MDB;
     public static MulticastDataRecoveryChannel MDR;
 
+    public static ExecutorService channel_executor;
+    public static ScheduledThreadPoolExecutor scheduled_executor;
+
     public Peer(String MC_address, int MC_port, String MDB_address, int MDB_port, String MDR_address, int MDR_port)  {
         MC = new MulticastControlChannel(MC_address, MC_port);
         MDB = new MulticastDataBackupChannel(MDB_address, MDB_port);
         MDR = new MulticastDataRecoveryChannel(MDR_address, MDR_port);
+
+        channel_executor = Executors.newCachedThreadPool();
+        channel_executor.submit(MC);
+        channel_executor.submit(MDB);
+        channel_executor.submit(MDR);
+
+        scheduled_executor = new ScheduledThreadPoolExecutor(0);
 
         id = UUID.randomUUID().hashCode();
     }
@@ -71,11 +85,7 @@ public class Peer implements RemoteInterface {
 
             registry.rebind(service_access_point, stub);
 
-            new Thread(MC).start();
-            new Thread(MDB).start();
-            new Thread(MDR).start();
-
-            System.out.println("Peer ready");
+            System.out.println("Peer " + id + " ready");
 
         } catch (Exception e) {
             System.err.println("Peer exception: " + e.toString());
@@ -90,8 +100,6 @@ public class Peer implements RemoteInterface {
         System.out.println("Backup file: "+ file_path);
 
         File file = new File(file_path);
-
-
 
         String file_id = FileManager.createFileId(file);
         Integer number_of_chunks = (int) Math.ceil((float) file.length() / Macros.CHUNK_MAX_SIZE );
@@ -122,11 +130,9 @@ public class Peer implements RemoteInterface {
 
         FileManager.create_empty_file_for_restoring( file_name );
 
-        Integer number_of_chunks = FilesListing.get_files_Listing().get_number_of_chunks(file_name);
-        //Restore all chunks
-        for(int i = 0; i < number_of_chunks; i++) {
-            RestoreProtocol.send_getchunk(Peer.version, Peer.id, file_id, i);
-        }
+        int number_of_chunks = FilesListing.get_files_Listing().get_number_of_chunks(file_name);
+
+        RestoreProtocol.send_getchunk(Peer.version, Peer.id, file_id, number_of_chunks);
 
         return 0;
     }

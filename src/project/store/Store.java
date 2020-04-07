@@ -22,6 +22,7 @@ public class Store {
     private Hashtable<String, String> restored_files = new Hashtable<>();
     //state of our files - key file_id + chunk and value wanted_replication degree and list of peers
     private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> backup_chunks_occurrences = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Boolean>  getchunk_reply = new ConcurrentHashMap<>();
 
     private static String peer_directory_path;
     private static String files_directory_path;
@@ -312,7 +313,6 @@ public class Store {
             Pair<Integer, ArrayList<Integer>> pair = this.backup_chunks_occurrences.get(chunk_id);
 
             if(pair.second.contains(peer_id)){
-                System.out.println("Already received a positive feedback from this peer");
                 return;
             }
 
@@ -342,6 +342,23 @@ public class Store {
 
     public void remove_Backup_chunks_occurrences(String chunk_id) {
         this.backup_chunks_occurrences.remove(chunk_id);
+    }
+
+    public void add_getchunk_reply(String chunk_id){
+        this.getchunk_reply.put(chunk_id, false);
+    }
+
+    public void check_getchunk_reply(String chunk_id){
+        if(this.getchunk_reply.containsKey(chunk_id))
+            this.getchunk_reply.replace(chunk_id, true);
+    }
+
+    public void remove_getchunk_reply(String chunk_id){
+        this.getchunk_reply.remove(chunk_id);
+    }
+
+    public boolean get_getchunk_reply(String chunk_id){
+        return this.getchunk_reply.get(chunk_id);
     }
 
     public String get_files_info_directory_path() {
