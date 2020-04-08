@@ -4,6 +4,8 @@ import project.chunk.Chunk;
 import project.message.PutChunkMessage;
 import project.message.StoredMessage;
 import project.peer.Peer;
+import project.store.FileManager;
+import project.store.FilesListing;
 import project.store.Store;
 
 import java.rmi.RemoteException;
@@ -46,7 +48,15 @@ public class BackupProtocol {
     }
 
     public static void receive_putchunk(PutChunkMessage putchunk){
-        if(Store.getInstance().storeChunk(putchunk.getFile_id(), putchunk.getChunkNo(), putchunk.getChunk(), putchunk.getReplicationDegree())){
+
+        String file_id = putchunk.getFile_id();
+
+        // Don't store because a peer doesn't store chunks of his files
+        if(FilesListing.get_files_Listing().get_file_name(file_id) != null){
+            return;
+        }
+
+        if(FileManager.storeChunk(file_id, putchunk.getChunkNo(), putchunk.getChunk(), putchunk.getReplicationDegree())){
             StoredMessage stored = new StoredMessage(putchunk.getVersion(), Peer.id, putchunk.getFile_id(), putchunk.getChunkNo());
 
             Runnable task = ()->send_stored(stored.convert_message());
@@ -59,7 +69,16 @@ public class BackupProtocol {
     }
 
     public static void receive_stored(StoredMessage message){
-        String chunk_id = message.getFile_id() + "_" + message.getChunk_no();
-        Store.getInstance().add_Backup_chunks_occurrences(chunk_id, message.getSender_id());
+        String file_id = message.getFile_id();
+        String chunk_id = file_id + "_" + message.getChunk_no();
+        Integer peer_id = message.getSender_id();
+
+        if(FilesListing.get_files_Listing().get_file_name(file_id) != null) {
+            Store.getInstance().add_Backup_chunks_occurrences(chunk_id, peer_id );
+        } else {
+            //adds replication degree of the stored file
+            Store.getInstance().add_replication_degree(file_id, message.getChunk_no(), peer_id);
+        }
+
     }
 }

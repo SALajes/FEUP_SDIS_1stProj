@@ -1,10 +1,11 @@
 package project.store;
 
 import project.Macros;
+import project.chunk.Chunk;
+import project.peer.Peer;
+import project.protocols.ReclaimProtocol;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -148,7 +149,6 @@ public class FileManager {
         }
 
         File[] folder_files = file_directory.listFiles();
-        System.out.println("Length " + folder_files.length);
         if (folder_files != null && folder_files.length > 0) {
             for (File f : folder_files) {
                 if (!f.delete()) {
@@ -159,4 +159,122 @@ public class FileManager {
 
         return file_directory.delete();
     }
+
+    /**
+     * get chunk from stored directory
+     * @param file_id encoded
+     * @param chunk_no number of the chunk we want to retrieve
+     * @return wanted chunk data
+     */
+    public static Chunk retrieveChunk(String file_id, int chunk_no){
+        if(Store.getInstance().checkStoredChunk(file_id, chunk_no)) {
+            Chunk chunk;
+            //get the chunk information from the chunks saved file
+            final String chunk_path = Store.getInstance().get_store_directory_path() + "/" + file_id + "/" + chunk_no;
+            File file = new File(chunk_path);
+            int chunk_size = (int) file.length();
+            byte[] chunk_data = new byte[chunk_size];
+            try (FileInputStream fileInputStream = new FileInputStream(chunk_path)) {
+                if(fileInputStream.read(chunk_data) < 0)
+                    return null;
+                chunk = new Chunk(chunk_no, chunk_data, chunk_size);
+                return chunk;
+            } catch (IOException e) {
+                System.err.println("Couldn't get chunk "+ chunk_no + " of file " + file_id);
+                e.printStackTrace();
+                return null;
+            }
+
+        }
+
+        // Does not have the chunk
+        return null;
+
+    }
+
+    /**
+     * Deletes a chunk
+     * @param file_id encoded
+     * @param chunk_number number of the chunk
+     * @return true if chunk was removed and false if it was
+     */
+    public static boolean removeChunk(String file_id, int chunk_number) {
+
+        System.out.println("Deleting chunk "+ chunk_number + " with id:" + file_id);
+
+        //check if the chunk exists
+        if (!Store.getInstance().checkStoredChunk(file_id, chunk_number)) {
+            System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " doesn't exists.");
+            return true;
+        }
+
+        //chunk will be in backup_directory/file_id/chunk_no
+        String chunk_dir = Store.getInstance().get_store_directory_path() + file_id + "/"+ chunk_number;
+
+        File chunk_file = new File(chunk_dir);
+
+        if( !chunk_file.exists() ){
+            System.out.println("File doesn't exists in the correct path ");
+            return false;
+        }
+
+        if (chunk_file.delete()) {
+
+            Store.getInstance().remove_space_with_storage((int) chunk_file.length());
+            //removes from stored chunks Hashtable
+            Store.getInstance().remove_stored_chunk(file_id, chunk_number);
+
+            ReclaimProtocol.send_removed(Peer.version, Peer.id, file_id, chunk_number);
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Given the chunk_body ( the data ), stores it in a file
+     * @param file_id encoded
+     * @param chunk_number number of the chunk
+     * @param chunk_body data
+     * @param replicationDegree wanted replication degree
+     * @return true if successful or false otherwise
+     */
+    public static boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, Integer replicationDegree) {
+
+        //check if the chunk already exists
+        if (Store.getInstance().checkStoredChunk(file_id, chunk_number)) {
+            return true;
+        }
+
+        //check if there is enough storage
+        if (!Store.getInstance().hasSpace(chunk_body.length)) {
+            System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " can't be store because there isn't space left.");
+            return false;
+        }
+
+        Store.getInstance().add_stored_chunk(file_id, chunk_number, replicationDegree);
+
+        String chunk_directory =  Store.getInstance().get_store_directory_path() + file_id + "/";
+
+        // Idempotent Method
+        FileManager.create_directory(chunk_directory);
+        String chunk_path = chunk_directory + chunk_number;
+
+        try {
+            //FileOutputStream.write() method automatically create a new file and write content to it.
+            FileOutputStream file = new FileOutputStream(chunk_path);
+            file.write(chunk_body);
+            file.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        //update the current space used for storage
+        Store.getInstance().AddToSpace_with_storage(chunk_body.length);
+        return true;
+    }
+
 }

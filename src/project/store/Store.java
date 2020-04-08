@@ -3,6 +3,7 @@ package project.store;
 import project.Macros;
 import project.chunk.Chunk;
 import project.peer.Peer;
+import project.protocols.ReclaimProtocol;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -18,8 +19,11 @@ public class Store {
     private static Store store = new Store();
 
     //state of others chunks
-    private Hashtable<String, Pair<Integer,ArrayList<Integer>>> stored_chunks = new Hashtable<>();
+    private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> stored_chunks = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> stored_chunks_occurrences = new ConcurrentHashMap<>();
+
     private Hashtable<String, String> restored_files = new Hashtable<>();
+
     //state of our files - key file_id + chunk and value wanted_replication degree and list of peers
     private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> backup_chunks_occurrences = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Boolean>  getchunk_reply = new ConcurrentHashMap<>();
@@ -67,10 +71,91 @@ public class Store {
         return store;
     }
 
+    // -----------  stored chunks
+
     public void remove_stored_chunks(String file_id ){
+
+        ArrayList<Integer> chunks_nos = new ArrayList<>(stored_chunks.get(file_id).second);
+
+        for(Integer chunk_number : chunks_nos) {
+            stored_chunks_occurrences.remove(file_id + "_" + chunk_number);
+        }
+
         stored_chunks.remove(file_id);
     }
 
+    public synchronized void add_stored_chunk(String file_id, int chunk_number, Integer replicationDegree) {
+
+        if(!stored_chunks.containsKey(file_id)) {
+
+            ArrayList<Integer> chunks_stored = new ArrayList<>();
+            chunks_stored.add(chunk_number);
+            Pair pair = new Pair<>(replicationDegree, chunks_stored);
+            stored_chunks.put(file_id, pair);
+
+            ArrayList<Integer> occurrences = new ArrayList<>();
+            occurrences.add(Peer.id);
+            Pair pair1 = new Pair<>(replicationDegree, occurrences);
+            stored_chunks_occurrences.put(file_id + "_" + chunk_number, pair1);
+            System.out.println(Peer.id + " add stored chunk " + chunk_number + " of file " + file_id);
+
+        } else if( !checkStoredChunk(file_id, chunk_number)) {
+
+            Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
+            pair.second.add(chunk_number);
+            stored_chunks.replace(file_id, pair);
+
+            ArrayList<Integer> occurrences = new ArrayList<>();
+            occurrences.add(Peer.id);
+            Pair pair1 = new Pair<>(replicationDegree, occurrences);
+            stored_chunks_occurrences.put(file_id + "_" + chunk_number, pair1 );
+            System.out.println(Peer.id + " add stored chunk " + chunk_number + " of file " + file_id);
+        }
+
+    }
+
+    public boolean checkStoredChunk(String file_id, int chunk_no){
+        if(stored_chunks.containsKey(file_id)) {
+            return stored_chunks.get(file_id).second.contains(chunk_no);
+        }
+        else return false;
+    }
+
+    public boolean add_replication_degree(String file_id, Integer chunk_number, Integer peer_id) {
+
+        String chunk_id = file_id + "_" + chunk_number;
+        //Peer doesn't have that chunk stored
+        if(!stored_chunks_occurrences.containsKey(chunk_id)) {
+            return false;
+        }
+
+        //already add that peer as a owner of a stored chunk
+        if(stored_chunks_occurrences.get(chunk_id).second.contains(peer_id))
+            return true;
+
+        stored_chunks_occurrences.get(chunk_id).second.add(peer_id);
+        return true;
+    }
+
+    void remove_stored_chunk(String file_id, Integer chunk_number) {
+
+        if(stored_chunks.containsKey(file_id)) {
+            Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
+
+            stored_chunks_occurrences.remove(file_id + "_" + chunk_number);
+            if(stored_chunks.get(file_id).second.size() == 1) {
+                System.out.println("No more chunks of that file, removing folder of file " + file_id);
+                stored_chunks.remove(file_id);
+                FileManager.delete_file_folder( this.get_store_directory_path() + file_id);
+            } else {
+                pair.second.remove(chunk_number);
+                stored_chunks.replace(file_id, pair);
+            }
+        }
+    }
+
+
+    // ---------------------------------------------- space allow -----------------------------------
     public void set_space_allow(Integer space_allow) {
         this.space_allow = space_allow;
 
@@ -85,10 +170,10 @@ public class Store {
              // Getting Key
              file_id = itr.next();
 
-             ArrayList<Integer> chunks_nos = new ArrayList<Integer>(stored_chunks.get(file_id).second);
+             ArrayList<Integer> chunks_nos = new ArrayList<>(stored_chunks.get(file_id).second);
 
              for(Integer chunk_number : chunks_nos) {
-                 removeChunk(file_id, chunk_number);
+                 FileManager.removeChunk(file_id, chunk_number);
                  if(space_allow >= space_with_storage){
                      return;
                  }
@@ -96,121 +181,6 @@ public class Store {
         }
     }
 
-    public boolean checkStoredChunk(String file_id, int chunk_no){
-        if(stored_chunks.containsKey(file_id)) {
-            return stored_chunks.get(file_id).second.contains(chunk_no);
-        }
-        else return false;
-    }
-
-    private void add_stored_chunk(String file_id, int chunk_number, int replicationDegree) {
-        if(stored_chunks.containsKey(file_id)) {
-            Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
-            pair.second.add(chunk_number);
-            stored_chunks.replace(file_id, pair);
-
-        }
-        else {
-            ArrayList<Integer> chunks_stored = new ArrayList<>();
-            chunks_stored.add(chunk_number);
-            Pair pair = new Pair<>(replicationDegree, chunks_stored);
-            stored_chunks.put(file_id, pair);
-        }
-    }
-
-    private void remove_stored_chunk(String file_id, Integer chunk_number) {
-
-        if(stored_chunks.containsKey(file_id)) {
-            Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
-
-            if(stored_chunks.get(file_id).second.size() == 1) {
-                System.out.println("No more chunks of that file, removing folder of file " + file_id);
-                stored_chunks.remove(file_id);
-                FileManager.delete_file_folder( this.get_store_directory_path() + file_id);
-            } else {
-                pair.second.remove(chunk_number);
-                stored_chunks.replace(file_id, pair);
-            }
-        }
-    }
-
-    /**
-     * get chunk from stored directory
-     * @param file_id encoded
-     * @param chunk_no number of the chunk we want to retrieve
-     * @return wanted chunk data
-     */
-    public Chunk retrieveChunk(String file_id, int chunk_no){
-        if(checkStoredChunk(file_id, chunk_no)) {
-            Chunk chunk;
-            //get the chunk information from the chunks saved file
-            final String chunk_path = store_directory_path + "/" + file_id + "/" + chunk_no;
-            File file = new File(chunk_path);
-            int chunk_size = (int) file.length();
-            byte[] chunk_data = new byte[chunk_size];
-            try (FileInputStream fileInputStream = new FileInputStream(chunk_path)) {
-                if(fileInputStream.read(chunk_data) < 0)
-                    return null;
-                chunk = new Chunk(chunk_no, chunk_data, chunk_size);
-                return chunk;
-            } catch (IOException e) {
-                System.err.println("Couldn't get chunk "+ chunk_no + " of file " + file_id);
-                e.printStackTrace();
-                return null;
-            }
-
-        }
-
-        // Does not have the chunk
-        return null;
-
-    }
-
-    /**
-     * Given the chunk_body ( the data ), stores it in a file
-     * @param file_id encoded
-     * @param chunk_number number of the chunk
-     * @param chunk_body data
-     * @param replicationDegree wanted replication degree
-     * @return true if successful or false otherwise
-     */
-    public boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, int replicationDegree) {
-
-        //check if the chunk already exists
-        if (checkStoredChunk(file_id, chunk_number)) {
-            System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " already exists.");
-            return true;
-        }
-
-        //check if there is enough storage
-        if (!this.hasSpace(chunk_body.length)) {
-            System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " can't be store because there isn't space left.");
-            return false;
-        }
-
-        String chunk_directory =  store_directory_path + file_id + "/";
-
-        // Idempotent Method
-        FileManager.create_directory(chunk_directory);
-        String chunk_path = chunk_directory + chunk_number;
-
-        try {
-            //FileOutputStream.write() method automatically create a new file and write content to it.
-            FileOutputStream file = new FileOutputStream(chunk_path);
-            file.write(chunk_body);
-            file.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        add_stored_chunk(file_id, chunk_number, replicationDegree);
-
-        //update the current space used for storage
-       this.AddToSpace_with_storage(chunk_body.length);
-        return true;
-    }
 
     /**
      * used to check if there is space to store a new chunk
@@ -233,22 +203,6 @@ public class Store {
     }
 
     /**
-     *
-     * @return spaced used for storage
-     */
-    public Integer getSpace_with_storage() {
-        return space_with_storage;
-    }
-
-    /**
-     * sets the spaces used for storage
-     * @param space_with_storage the amount of space in bytes used for storage
-     */
-    public void setSpace_with_storage(int space_with_storage) {
-        this.space_with_storage = space_with_storage;
-    }
-
-    /**
      * used when a chunk is deleted
      * @param space_with_storage the amount of space in bytes used for storage
      */
@@ -256,45 +210,23 @@ public class Store {
         this.space_with_storage -= space_with_storage;
     }
 
-    /**
-     * Deletes a chunk
-     * @param file_id encoded
-     * @param chunk_number number of the chunk
-     * @return true if chunk was removed and false if it was
-     */
-    public boolean removeChunk(String file_id, int chunk_number) {
 
-        System.out.println("Deleting chunk "+ chunk_number + " with id:" + file_id);
-
-        //check if the chunk exists
-        if (!checkStoredChunk(file_id, chunk_number)) {
-            System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " doesn't exists.");
-            return true;
-        }
-
-        //chunk will be in backup_directory/file_id/chunk_no
-        String chunk_dir =  store_directory_path + file_id + "/"+ chunk_number;
-
-        File chunk_file = new File(chunk_dir);
-
-        if( !chunk_file.exists() ){
-            System.out.println("File doesn't exists in the correct path ");
-            return false;
-        }
-
-        if (chunk_file.delete()) {
-
-            this.remove_space_with_storage((int) chunk_file.length());
-            //removes from stored chunks Hashtable
-            remove_stored_chunk(file_id, chunk_number);
-            return true;
-        }
-
-        return false;
-    }
 
     public boolean has_replication_degree(String chunk_id) {
-        return (check_backup_chunks_occurrences(chunk_id) >= this.backup_chunks_occurrences.get(chunk_id).first);
+       return (check_stored_chunks_occurrences(chunk_id) >= this.stored_chunks_occurrences.get(chunk_id).first);
+    }
+
+    public Integer get_replication_degree(String chunk_id) {
+        if(!this.stored_chunks_occurrences.containsKey(chunk_id))
+            return -1;
+        return this.stored_chunks_occurrences.get(chunk_id).first;
+    }
+
+    public Integer check_stored_chunks_occurrences(String chunk_id) {
+        if(this.stored_chunks_occurrences.get(chunk_id) != null)
+            return this.stored_chunks_occurrences.get(chunk_id).second.size();
+
+        return -1;
     }
 
     public void new_Backup_chunk(String chunk_id, int replication_degree) {
@@ -305,7 +237,7 @@ public class Store {
 
             this.backup_chunks_occurrences.replace(chunk_id, pair);
         }
-        else this.backup_chunks_occurrences.put(chunk_id, new Pair<Integer, ArrayList<Integer>>(replication_degree, new ArrayList<>()));
+        else this.backup_chunks_occurrences.put(chunk_id, new Pair<>(replication_degree, new ArrayList<>()));
     }
 
     public void add_Backup_chunks_occurrences(String chunk_id, int peer_id) {
@@ -344,6 +276,22 @@ public class Store {
         this.backup_chunks_occurrences.remove(chunk_id);
     }
 
+    public void remove_stored_chunk_occurrence(String chunk_id, Integer peer_id) {
+        Pair<Integer,ArrayList<Integer>> value = this.stored_chunks_occurrences.get(chunk_id);
+
+        if(value != null ){
+            ArrayList<Integer> peersList = value.second;
+            peersList.remove(peer_id);
+            Pair<Integer, ArrayList<Integer>> pair = new Pair<>(value.first, peersList);
+            this.stored_chunks_occurrences.replace(chunk_id, pair);
+        }
+
+    }
+
+    public void remove_stored_chunks_occurrences(String chunk_id) {
+        this.stored_chunks_occurrences.remove(chunk_id);
+    }
+
     public void add_getchunk_reply(String chunk_id){
         this.getchunk_reply.put(chunk_id, false);
     }
@@ -361,6 +309,7 @@ public class Store {
         return this.getchunk_reply.get(chunk_id);
     }
 
+    // -----------------------------------     get paths ------------------------------------------------------
     public String get_files_info_directory_path() {
         return files_info_directory_path;
     }
