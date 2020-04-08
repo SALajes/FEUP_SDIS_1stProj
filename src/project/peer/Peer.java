@@ -79,11 +79,15 @@ public class Peer implements RemoteInterface {
             Registry registry;
             try {
                 registry = LocateRegistry.createRegistry(RegistryPort);
-            }catch (RemoteException e){
+            } catch (RemoteException e){
                 registry = LocateRegistry.getRegistry(RegistryPort);
             }
 
             registry.rebind(service_access_point, stub);
+
+            //creates folders
+            Store.getInstance();
+            FilesListing.get_files_Listing();
 
             System.out.println("Peer " + id + " ready");
 
@@ -94,6 +98,7 @@ public class Peer implements RemoteInterface {
     }
 
     public int backup(String file_path, int replication_degree) throws InvalidMessageException {
+        
         if(replication_degree <= 0 || replication_degree > 9)
             throw new InvalidMessageException("Replication degree is invalid");
 
@@ -133,6 +138,8 @@ public class Peer implements RemoteInterface {
         int number_of_chunks = FilesListing.get_files_Listing().get_number_of_chunks(file_name);
 
         RestoreProtocol.send_getchunk(Peer.version, Peer.id, file_id, number_of_chunks);
+
+        Store.getInstance().add_restored_file(file_id, file_name);
 
         return 0;
     }

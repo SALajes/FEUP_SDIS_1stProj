@@ -22,6 +22,7 @@ public class Store {
     private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> stored_chunks = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> stored_chunks_occurrences = new ConcurrentHashMap<>();
 
+    //state of restored files - key file_id - value file_name
     private Hashtable<String, String> restored_files = new Hashtable<>();
 
     //state of our files - key file_id + chunk and value wanted_replication degree and list of peers
@@ -307,6 +308,10 @@ public class Store {
 
     public boolean get_getchunk_reply(String chunk_id){
         return this.getchunk_reply.get(chunk_id);
+    }
+
+    public void add_restored_file(String file_id, String file_name){
+        restored_files.put(file_id, file_name);
     }
 
     // -----------------------------------     get paths ------------------------------------------------------
