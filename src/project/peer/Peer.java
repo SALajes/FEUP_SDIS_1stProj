@@ -6,13 +6,13 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 
+import project.InvalidFileException;
 import project.Macros;
 
 import project.channel.*;
@@ -23,6 +23,7 @@ import project.protocols.DeleteProtocol;
 import project.protocols.RestoreProtocol;
 import project.store.FileManager;
 import project.store.FilesListing;
+import project.store.Pair;
 import project.store.Store;
 
 public class Peer implements RemoteInterface {
@@ -65,7 +66,7 @@ public class Peer implements RemoteInterface {
 
         try{
             version = Double.parseDouble(args[0]);
-            //fiquei confusa, nao e suposto ser o peer a definir a sua versao?
+
             if( version != Macros.VERSION) {
                 System.out.println("Not default version");
             }
@@ -97,7 +98,7 @@ public class Peer implements RemoteInterface {
         }
     }
 
-    public int backup(String file_path, int replication_degree) throws InvalidMessageException {
+    public int backup(String file_path, int replication_degree) throws InvalidMessageException, InvalidFileException {
         
         if(replication_degree <= 0 || replication_degree > 9)
             throw new InvalidMessageException("Replication degree is invalid");
@@ -105,6 +106,10 @@ public class Peer implements RemoteInterface {
         System.out.println("Backup file: "+ file_path);
 
         File file = new File(file_path);
+
+        if(file.length() >= Macros.MAX_FILE_SIZE) {
+            throw new InvalidFileException("File is larger than accepted");
+        }
 
         String file_id = FileManager.createFileId(file);
         Integer number_of_chunks = (int) Math.ceil((float) file.length() / Macros.CHUNK_MAX_SIZE );
@@ -187,22 +192,88 @@ public class Peer implements RemoteInterface {
      * It must be possible to specify a value of 0, thus reclaiming all disk space previously allocated to the service.
      */
     @Override
-    public int manage(int max_disk_space) {
+    public int reclaim(int max_disk_space) {
         if(max_disk_space < 0) {
             System.err.println("Invalid maximum disk space");
             System.exit(-1);
         }
 
-        Store.getInstance().set_space_allow(max_disk_space);
+        Store.getInstance().setStorageCapacity(max_disk_space);
 
         return 0;
     }
 
     /**
      * This operation allows to observe the service state.
+     * @return
      */
     @Override
     public String retrieve_state() {
-        return "retrieve state successful";
+        String state = retrieve_backup_state() + "\n";
+
+        state += retrieve_stored_chunks_state() + "\n";
+
+        state += retrieve_storage_state();
+
+        return state;
+    }
+
+    private String retrieve_backup_state() {
+        String state = "|--------- BACKUP --------|\n";
+        ConcurrentHashMap<String, Pair<String, Integer>> files = FilesListing.get_files();
+
+        Iterator it = files.entrySet().iterator();
+
+        while(it.hasNext()){
+            ConcurrentHashMap.Entry file = (ConcurrentHashMap.Entry)it.next();
+            String file_name = (String) file.getKey();
+            Pair<String, Integer> pair = (Pair<String, Integer>) file.getValue();// Pair( file_id , number_of_chunks )
+            int replication_degree = Store.getInstance().get_backup_chunk_replication_degree(pair.first + "_0");
+
+            state = state + "> path: " + file_name + "\n"
+                    + "   id: " + pair.first + "\n"
+                    + "   replication degree: " + replication_degree + "\n"
+                    + "   > chunks:\n";
+
+            for(int i = 0; i < pair.second; i++){
+                state = state + "      id: " + i + "\n"
+                        + "      perceived replication degree: " + Store.getInstance().check_backup_chunks_occurrences(pair.first + "_" + i) + "\n";
+            }
+        }
+
+        return state;
+    }
+
+    private String retrieve_stored_chunks_state() {
+        String state = "|----- STORED CHUNKS -----|\n";
+
+        ConcurrentHashMap<String, Pair<Integer, ArrayList<Integer>>> stored_chunks = Store.getInstance().get_stored_chunks();
+        Iterator it = stored_chunks.entrySet().iterator();
+
+        while(it.hasNext()) {
+            ConcurrentHashMap.Entry chunks = (ConcurrentHashMap.Entry) it.next();
+            String file_id = (String) chunks.getKey();
+            Pair<Integer,ArrayList<Integer>> pair = (Pair<Integer,ArrayList<Integer>>) chunks.getValue();// Pair( replication degree , chunks ids )
+            int replication_degree = pair.first;
+
+            state = state + "> file_id: " + file_id + "\n";
+
+            for(Integer chunk_no : pair.second){
+                state = state + "   id: " + chunk_no + "\n"
+                        + "   size: " + FileManager.retrieveChunkSize(file_id, chunk_no) + "\n"
+                        + "   perceived replication degree: " + replication_degree + "\n";
+            }
+        }
+
+        return state;
+    }
+
+    private String retrieve_storage_state() {
+        String state = "|----- STORAGE STATE -----|\n";
+
+        state = state + "   Capacity: " + Store.getInstance().getStorageCapacity() + "\n"
+                + "   Occupied: " + Store.getInstance().getOccupiedStorage() + "\n";
+
+        return state + "----------------------";
     }
 }

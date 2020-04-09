@@ -78,7 +78,7 @@ public class TestApp {
                         System.exit(-5);
                     }
                     // reclaim all the disk space being used by the service,
-                    peer.manage(Integer.parseInt(opnd_1));
+                    peer.reclaim(Integer.parseInt(opnd_1));
                     break;
                 case "STATE":
                     if (args.length != 2) {
@@ -87,7 +87,7 @@ public class TestApp {
                         System.exit(-6);
                     }
                     //retrieve the internal state of the peer
-                    peer.retrieve_state();
+                    System.out.println(peer.retrieve_state());
                     break;
                 default:
                     usage();
@@ -102,6 +102,8 @@ public class TestApp {
         } catch (NotBoundException e) {
             e.printStackTrace();
         } catch (InvalidMessageException e) {
+            e.getMessage();
+        } catch (InvalidFileException e) {
             e.printStackTrace();
         }
     }

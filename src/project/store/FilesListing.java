@@ -5,6 +5,7 @@ import project.protocols.BackupProtocol;
 import project.protocols.DeleteProtocol;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,8 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FilesListing {
 
     private static FilesListing filesListing = new FilesListing();
-    private static ConcurrentHashMap<String, String> files = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<String, Integer> files_chunks = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Pair<String, Integer>> files = new ConcurrentHashMap<>();
 
     //singleton
     private FilesListing() {
@@ -36,43 +36,44 @@ public class FilesListing {
      * @return file_id if file name exists
      */
     public String get_file_id(String file_name) {
-        return files.get(file_name);
+        return files.get(file_name).first;
     }
 
     public String get_file_name(String file_id) {
-        if(files.containsValue(file_id)) {
-            for( String key : files.keySet()){
-                if(files.get(key).equals(file_id))
-                    return key;
+        Iterator it = files.entrySet().iterator();
 
+        while(it.hasNext()){
+            ConcurrentHashMap.Entry file = (ConcurrentHashMap.Entry) it.next();
+            Pair<String, Integer> pair = (Pair<String, Integer>) file.getValue();
+            if(file_id.equals(pair.first)){
+                return (String) file.getKey();
             }
         }
         return null;
     }
 
     public Integer get_number_of_chunks(String file_name) {
-        return files_chunks.get(file_name);
+        return files.get(file_name).second;
     }
 
     public void add_file(String file_name, String file_id, Integer number_of_chunks) {
 
         //put returns the previous value associated with key, or null if there was no mapping for key
-        String previous_file_id = files.put(file_name, file_id);
-        Integer previous_number_of_chunks = files_chunks.put(file_name, number_of_chunks);
+        Pair<String, Integer> pair = files.put(file_name, new Pair<>(file_id, number_of_chunks));
 
-        if (previous_file_id != null) {
+        if (pair != null) {
             System.out.println("This file_name already exists, updating the content.");
 
-            System.out.println("Deleting " + previous_number_of_chunks + " chunks from the out of date file");
+            System.out.println("Deleting " + pair.second + " chunks from the out of date file");
 
             //deletes file from network storage
-            DeleteProtocol.send_delete(Peer.version, Peer.id, previous_file_id );
+            DeleteProtocol.send_delete(Peer.version, Peer.id, pair.first );
 
             //deletes own files with chunks of the file in the 3 folders ( files, stored, restored)
-            FileManager.delete_files_folders(previous_file_id);
+            FileManager.delete_files_folders(pair.first);
 
             //old file is ours so unregister chunks of the file
-            Store.getInstance().remove_stored_chunks(previous_file_id);
+            Store.getInstance().remove_stored_chunks(pair.first);
 
         }
         set_files_disk_info();
@@ -80,7 +81,6 @@ public class FilesListing {
 
     public void delete_file_records(String file_name) {
         files.remove(file_name);
-        files_chunks.remove(file_name);
         set_files_disk_info();
     }
 
@@ -126,5 +126,7 @@ public class FilesListing {
         return true;
     }
 
-
+    public static ConcurrentHashMap get_files() {
+        return files;
+    }
 }

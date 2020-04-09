@@ -192,6 +192,12 @@ public class FileManager {
 
     }
 
+    public static int retrieveChunkSize(String file_id, int chunk_no){
+        final String chunk_path = Store.getInstance().get_store_directory_path() + "/" + file_id + "/" + chunk_no;
+        File file = new File(chunk_path);
+        return (int) file.length();
+    }
+
     /**
      * Deletes a chunk
      * @param file_id encoded
@@ -220,7 +226,7 @@ public class FileManager {
 
         if (chunk_file.delete()) {
 
-            Store.getInstance().remove_space_with_storage((int) chunk_file.length());
+            Store.getInstance().RemoveOccupiedStorage((int) chunk_file.length());
             //removes from stored chunks Hashtable
             Store.getInstance().remove_stored_chunk(file_id, chunk_number);
 
@@ -273,7 +279,7 @@ public class FileManager {
         }
 
         //update the current space used for storage
-        Store.getInstance().AddToSpace_with_storage(chunk_body.length);
+        Store.getInstance().AddOccupiedStorage(chunk_body.length);
         return true;
     }
 

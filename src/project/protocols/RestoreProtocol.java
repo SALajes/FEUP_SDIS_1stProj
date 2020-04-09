@@ -38,6 +38,7 @@ public class RestoreProtocol {
         String file_id = getChunkMessage.getFile_id();
         Integer chunk_number = getChunkMessage.get_chunk_no();
         Chunk chunk = FileManager.retrieveChunk( file_id, chunk_number);
+
         send_chunk(getChunkMessage.getVersion(), Peer.id, file_id, chunk_number, chunk.content);
     }
 

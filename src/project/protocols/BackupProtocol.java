@@ -51,11 +51,6 @@ public class BackupProtocol {
 
         String file_id = putchunk.getFile_id();
 
-        // Don't store because a peer doesn't store chunks of his files
-        if(FilesListing.get_files_Listing().get_file_name(file_id) != null){
-            return;
-        }
-
         if(FileManager.storeChunk(file_id, putchunk.getChunkNo(), putchunk.getChunk(), putchunk.getReplicationDegree())){
             StoredMessage stored = new StoredMessage(putchunk.getVersion(), Peer.id, putchunk.getFile_id(), putchunk.getChunkNo());
 

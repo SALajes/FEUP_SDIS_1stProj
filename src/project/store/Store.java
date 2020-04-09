@@ -1,14 +1,8 @@
 package project.store;
 
 import project.Macros;
-import project.chunk.Chunk;
 import project.peer.Peer;
-import project.protocols.ReclaimProtocol;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -36,8 +30,8 @@ public class Store {
     private static String store_info_directory_path;
     private static String restored_directory_path;
 
-    private int space_with_storage = 0; //in bytes
-    private Integer space_allow = -1; //Initial there isn't restrictions of space
+    private long occupied_storage = 0; //in bytes
+    private long storage_capacity = Macros.INITIAL_STORAGE; //Initial there isn't restrictions of space
 
 
     /**
@@ -72,17 +66,67 @@ public class Store {
         return store;
     }
 
+
+
+    // ---------------------------------------------- RECLAIM -----------------------------------
+    public void setStorageCapacity(Integer new_capacity) {
+        this.storage_capacity = new_capacity;
+
+        Set<String> keys = stored_chunks.keySet();
+
+        //Obtaining iterator over set entries
+        Iterator<String> itr = keys.iterator();
+        String file_id;
+
+        //deletes necessary chunk to have that space
+        while((new_capacity < occupied_storage) && itr.hasNext()) {
+            // Getting Key
+            file_id = itr.next();
+
+            ArrayList<Integer> chunks_nos = new ArrayList<>(stored_chunks.get(file_id).second);
+
+            for(Integer chunk_number : chunks_nos) {
+                FileManager.removeChunk(file_id, chunk_number);
+                if(new_capacity >= occupied_storage){
+                    return;
+                }
+            }
+        }
+    }
+
+    //-------------------- STORAGE ------------------
+    public long getStorageCapacity() {
+        return storage_capacity;
+    }
+
+    public long getOccupiedStorage() {
+        return occupied_storage;
+    }
+
+    public boolean hasSpace(Integer space_wanted) {
+        return (this.storage_capacity >= this.occupied_storage + space_wanted);
+    }
+    /**
+     * used when a new chunk is store ( by backup )
+     * @param space_wanted storage space added
+     */
+    public void AddOccupiedStorage(int space_wanted) {
+        this.occupied_storage += space_wanted;
+    }
+
+    /**
+     * used when a chunk is deleted
+     * @param occupied_space the amount of space in bytes used for storage
+     */
+    public void RemoveOccupiedStorage(int occupied_space) {
+        this.occupied_storage -= occupied_space;
+    }
+
+
     // -----------  stored chunks
 
-    public void remove_stored_chunks(String file_id ){
-
-        ArrayList<Integer> chunks_nos = new ArrayList<>(stored_chunks.get(file_id).second);
-
-        for(Integer chunk_number : chunks_nos) {
-            stored_chunks_occurrences.remove(file_id + "_" + chunk_number);
-        }
-
-        stored_chunks.remove(file_id);
+    public ConcurrentHashMap<String, Pair<Integer, ArrayList<Integer>>> get_stored_chunks() {
+        return stored_chunks;
     }
 
     public synchronized void add_stored_chunk(String file_id, int chunk_number, Integer replicationDegree) {
@@ -94,11 +138,7 @@ public class Store {
             Pair pair = new Pair<>(replicationDegree, chunks_stored);
             stored_chunks.put(file_id, pair);
 
-            ArrayList<Integer> occurrences = new ArrayList<>();
-            occurrences.add(Peer.id);
-            Pair pair1 = new Pair<>(replicationDegree, occurrences);
-            stored_chunks_occurrences.put(file_id + "_" + chunk_number, pair1);
-            System.out.println(Peer.id + " add stored chunk " + chunk_number + " of file " + file_id);
+            add_stored_chunks_occurrences(file_id, chunk_number, replicationDegree);
 
         } else if( !checkStoredChunk(file_id, chunk_number)) {
 
@@ -106,13 +146,8 @@ public class Store {
             pair.second.add(chunk_number);
             stored_chunks.replace(file_id, pair);
 
-            ArrayList<Integer> occurrences = new ArrayList<>();
-            occurrences.add(Peer.id);
-            Pair pair1 = new Pair<>(replicationDegree, occurrences);
-            stored_chunks_occurrences.put(file_id + "_" + chunk_number, pair1 );
-            System.out.println(Peer.id + " add stored chunk " + chunk_number + " of file " + file_id);
+            add_stored_chunks_occurrences(file_id, chunk_number, replicationDegree);
         }
-
     }
 
     public boolean checkStoredChunk(String file_id, int chunk_no){
@@ -120,22 +155,6 @@ public class Store {
             return stored_chunks.get(file_id).second.contains(chunk_no);
         }
         else return false;
-    }
-
-    public boolean add_replication_degree(String file_id, Integer chunk_number, Integer peer_id) {
-
-        String chunk_id = file_id + "_" + chunk_number;
-        //Peer doesn't have that chunk stored
-        if(!stored_chunks_occurrences.containsKey(chunk_id)) {
-            return false;
-        }
-
-        //already add that peer as a owner of a stored chunk
-        if(stored_chunks_occurrences.get(chunk_id).second.contains(peer_id))
-            return true;
-
-        stored_chunks_occurrences.get(chunk_id).second.add(peer_id);
-        return true;
     }
 
     void remove_stored_chunk(String file_id, Integer chunk_number) {
@@ -155,63 +174,34 @@ public class Store {
         }
     }
 
+    public void remove_stored_chunks(String file_id ){
+        stored_chunks.remove(file_id);
+    }
 
-    // ---------------------------------------------- space allow -----------------------------------
-    public void set_space_allow(Integer space_allow) {
-        this.space_allow = space_allow;
+    //-------------------- Stored Chunks Occurrences ------------------
+    private void add_stored_chunks_occurrences(String file_id, int chunk_number, Integer replicationDegree) {
+        ArrayList<Integer> occurrences = new ArrayList<>();
+        occurrences.add(Peer.id);
+        Pair pair1 = new Pair<>(replicationDegree, occurrences);
+        stored_chunks_occurrences.put(file_id + "_" + chunk_number, pair1 );
+        System.out.println(Peer.id + " add stored chunk " + chunk_number + " of file " + file_id);
+    }
 
-        Set<String> keys = stored_chunks.keySet();
+    public boolean add_replication_degree(String file_id, Integer chunk_number, Integer peer_id) {
 
-        //Obtaining iterator over set entries
-        Iterator<String> itr = keys.iterator();
-        String file_id;
-
-        //deletes necessary chunk to have that space
-         while((space_allow < space_with_storage) && itr.hasNext()) {
-             // Getting Key
-             file_id = itr.next();
-
-             ArrayList<Integer> chunks_nos = new ArrayList<>(stored_chunks.get(file_id).second);
-
-             for(Integer chunk_number : chunks_nos) {
-                 FileManager.removeChunk(file_id, chunk_number);
-                 if(space_allow >= space_with_storage){
-                     return;
-                 }
-             }
+        String chunk_id = file_id + "_" + chunk_number;
+        //Peer doesn't have that chunk stored
+        if(!stored_chunks_occurrences.containsKey(chunk_id)) {
+            return false;
         }
-    }
 
-
-    /**
-     * used to check if there is space to store a new chunk
-     * @param space_wanted space we pretend to use
-     * @return true if space exist or false otherwise
-     */
-    public boolean hasSpace(Integer space_wanted) {
-        //don't exit restrictions
-        if(this.space_allow == -1)
+        //already add that peer as a owner of a stored chunk
+        if(stored_chunks_occurrences.get(chunk_id).second.contains(peer_id))
             return true;
-        return (this.space_allow >= this.space_with_storage + space_wanted);
+
+        stored_chunks_occurrences.get(chunk_id).second.add(peer_id);
+        return true;
     }
-
-    /**
-     * used when a new chunk is store ( by backup )
-     * @param space_with_storage storage space added
-     */
-    public void AddToSpace_with_storage(int space_with_storage) {
-        this.space_with_storage += space_with_storage;
-    }
-
-    /**
-     * used when a chunk is deleted
-     * @param space_with_storage the amount of space in bytes used for storage
-     */
-    public void remove_space_with_storage(int space_with_storage) {
-        this.space_with_storage -= space_with_storage;
-    }
-
-
 
     public boolean has_replication_degree(String chunk_id) {
        return (check_stored_chunks_occurrences(chunk_id) >= this.stored_chunks_occurrences.get(chunk_id).first);
@@ -229,6 +219,24 @@ public class Store {
 
         return -1;
     }
+
+    public void remove_stored_chunk_occurrence(String chunk_id, Integer peer_id) {
+        Pair<Integer,ArrayList<Integer>> value = this.stored_chunks_occurrences.get(chunk_id);
+
+        if(value != null ){
+            ArrayList<Integer> peersList = value.second;
+            peersList.remove(peer_id);
+            Pair<Integer, ArrayList<Integer>> pair = new Pair<>(value.first, peersList);
+            this.stored_chunks_occurrences.replace(chunk_id, pair);
+        }
+
+    }
+
+    public void remove_stored_chunks_occurrences(String chunk_id) {
+        this.stored_chunks_occurrences.remove(chunk_id);
+    }
+
+    //---------------------------- BACKUP CHUNKS ----------------------------------
 
     public void new_Backup_chunk(String chunk_id, int replication_degree) {
         if(this.backup_chunks_occurrences.containsKey(chunk_id)){
@@ -257,8 +265,11 @@ public class Store {
     public int check_backup_chunks_occurrences(String chunk_id) {
         if(this.backup_chunks_occurrences.get(chunk_id) != null)
             return this.backup_chunks_occurrences.get(chunk_id).second.size();
-
         return -1;
+    }
+
+    public int get_backup_chunk_replication_degree(String file_id) {
+        return backup_chunks_occurrences.get(file_id).first;
     }
 
     public void remove_Backup_chunk_occurrence(String chunk_id, Integer peer_id) {
@@ -277,21 +288,7 @@ public class Store {
         this.backup_chunks_occurrences.remove(chunk_id);
     }
 
-    public void remove_stored_chunk_occurrence(String chunk_id, Integer peer_id) {
-        Pair<Integer,ArrayList<Integer>> value = this.stored_chunks_occurrences.get(chunk_id);
-
-        if(value != null ){
-            ArrayList<Integer> peersList = value.second;
-            peersList.remove(peer_id);
-            Pair<Integer, ArrayList<Integer>> pair = new Pair<>(value.first, peersList);
-            this.stored_chunks_occurrences.replace(chunk_id, pair);
-        }
-
-    }
-
-    public void remove_stored_chunks_occurrences(String chunk_id) {
-        this.stored_chunks_occurrences.remove(chunk_id);
-    }
+    // --------------------------- GETCHUNK -----------------------------------
 
     public void add_getchunk_reply(String chunk_id){
         this.getchunk_reply.put(chunk_id, false);
@@ -314,7 +311,8 @@ public class Store {
         restored_files.put(file_id, file_name);
     }
 
-    // -----------------------------------     get paths ------------------------------------------------------
+    // ----------------------------------- GET PATHS ------------------------------------------------------
+
     public String get_files_info_directory_path() {
         return files_info_directory_path;
     }
