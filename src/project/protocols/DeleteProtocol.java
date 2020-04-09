@@ -17,14 +17,11 @@ public class DeleteProtocol {
         Peer.MC.send_message(deleteMessage.convert_message());
     }
 
-
     public static void receive_delete(DeleteMessage deleteMessage){
-        System.out.println(deleteMessage.getFile_id());
-
         String file_id = deleteMessage.getFile_id();
 
         //delete all files and records in stored
         FileManager.delete_file_folder(Store.getInstance().get_store_directory_path() + file_id);
-
+        Store.getInstance().remove_stored_chunks(file_id);
     }
 }

@@ -26,20 +26,19 @@ public class FilesListing {
      * get all files listed
      * @return an instance FilesListing
      */
-    public static FilesListing get_files_Listing() {
+    public static FilesListing getInstance() {
         return filesListing;
     }
 
-    /**
-     *  checks the files ConcurrentHashMap for a file
-     * @param file_name encoded name of the file
-     * @return file_id if file name exists
-     */
-    public String get_file_id(String file_name) {
+    public String getFileId(String file_name) {
         return files.get(file_name).first;
     }
 
-    public String get_file_name(String file_id) {
+    public static int getNumberOfChunks(String file_name) {
+        return files.get(file_name).second;
+    }
+
+    public String getFileName(String file_id) {
         Iterator it = files.entrySet().iterator();
 
         while(it.hasNext()){
@@ -79,7 +78,12 @@ public class FilesListing {
         set_files_disk_info();
     }
 
-    public void delete_file_records(String file_name) {
+    public void delete_file_records(String file_name, String file_id) {
+        int number_of_chunks = getNumberOfChunks(file_name);
+
+        for(int i = 0; i < number_of_chunks; i++)
+            Store.getInstance().remove_Backup_chunks_occurrences(file_id + "_" + i);
+
         files.remove(file_name);
         set_files_disk_info();
     }

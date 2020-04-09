@@ -118,7 +118,7 @@ public class FileManager {
         delete_file_folder( Store.getInstance().get_store_directory_path() + file_id );
         Store.getInstance().remove_stored_chunks(file_id);
 
-        String file_name = FilesListing.get_files_Listing().get_file_name(file_id);
+        String file_name = FilesListing.getInstance().getFileName(file_id);
         if( file_name != null) {
             delete_file_folder( Store.getInstance().get_restored_directory_path() + file_id );
             //You should not delete the original file, when you execute the Delete protocol
@@ -134,30 +134,35 @@ public class FileManager {
      */
     public static boolean delete_file_folder(String file_path) {
 
-        File file_directory = new File(file_path);
+        File file = new File(file_path);
 
-        if(file_directory == null){
+        if(file == null){
             return false;
         }
 
-        if (file_directory.isFile()) {
-            return file_directory.delete();
+        if (file.isFile()) {
+            Store.getInstance().RemoveOccupiedStorage(file.length());
+            return file.delete();
         }
 
-        if (!file_directory.isDirectory()) {
+        if (!file.isDirectory()) {
             return false;
         }
 
-        File[] folder_files = file_directory.listFiles();
+        File[] folder_files = file.listFiles();
         if (folder_files != null && folder_files.length > 0) {
             for (File f : folder_files) {
-                if (!f.delete()) {
+                if (f.isFile()) {
+                    Store.getInstance().RemoveOccupiedStorage(file.length());
+                    file.delete();
+                }
+                else if (!f.delete()) {
                     return false;
                 }
             }
         }
 
-        return file_directory.delete();
+        return file.delete();
     }
 
     /**
@@ -214,7 +219,7 @@ public class FileManager {
             return true;
         }
 
-        //chunk will be in backup_directory/file_id/chunk_no
+        //chunk will be in stored_directory/file_id/chunk_no
         String chunk_dir = Store.getInstance().get_store_directory_path() + file_id + "/"+ chunk_number;
 
         File chunk_file = new File(chunk_dir);
@@ -225,7 +230,6 @@ public class FileManager {
         }
 
         if (chunk_file.delete()) {
-
             Store.getInstance().RemoveOccupiedStorage((int) chunk_file.length());
             //removes from stored chunks Hashtable
             Store.getInstance().remove_stored_chunk(file_id, chunk_number);
@@ -259,8 +263,6 @@ public class FileManager {
             return false;
         }
 
-        Store.getInstance().add_stored_chunk(file_id, chunk_number, replicationDegree);
-
         String chunk_directory =  Store.getInstance().get_store_directory_path() + file_id + "/";
 
         // Idempotent Method
@@ -278,8 +280,10 @@ public class FileManager {
             return false;
         }
 
+        Store.getInstance().add_stored_chunk(file_id, chunk_number, replicationDegree);
         //update the current space used for storage
         Store.getInstance().AddOccupiedStorage(chunk_body.length);
+
         return true;
     }
 

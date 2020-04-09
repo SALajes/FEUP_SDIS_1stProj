@@ -110,16 +110,16 @@ public class Store {
      * used when a new chunk is store ( by backup )
      * @param space_wanted storage space added
      */
-    public void AddOccupiedStorage(int space_wanted) {
-        this.occupied_storage += space_wanted;
+    public void AddOccupiedStorage(long space_wanted) {
+        occupied_storage += space_wanted;
     }
 
     /**
      * used when a chunk is deleted
      * @param occupied_space the amount of space in bytes used for storage
      */
-    public void RemoveOccupiedStorage(int occupied_space) {
-        this.occupied_storage -= occupied_space;
+    public void RemoveOccupiedStorage(long occupied_space) {
+        occupied_storage -= occupied_space;
     }
 
 
@@ -174,7 +174,7 @@ public class Store {
         }
     }
 
-    public void remove_stored_chunks(String file_id ){
+    public void remove_stored_chunks(String file_id){
         ArrayList<Integer> chunk_nos = new ArrayList<>(stored_chunks.get(file_id).second);
 
         for(Integer chunk_number : chunk_nos) {

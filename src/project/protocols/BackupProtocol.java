@@ -8,7 +8,6 @@ import project.store.FileManager;
 import project.store.FilesListing;
 import project.store.Store;
 
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +67,7 @@ public class BackupProtocol {
         String chunk_id = file_id + "_" + message.getChunk_no();
         Integer peer_id = message.getSender_id();
 
-        if(FilesListing.get_files_Listing().get_file_name(file_id) != null) {
+        if(FilesListing.getInstance().getFileName(file_id) != null) {
             Store.getInstance().add_Backup_chunks_occurrences(chunk_id, peer_id );
         } else {
             //adds replication degree of the stored file

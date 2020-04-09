@@ -1,16 +1,13 @@
 package project.protocols;
 
 import project.chunk.Chunk;
-import project.message.BaseMessage;
 import project.message.ChunkMessage;
 import project.message.GetChunkMessage;
-import project.message.PutChunkMessage;
 import project.peer.Peer;
 import project.store.FileManager;
 import project.store.FilesListing;
 import project.store.Store;
 
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -60,7 +57,7 @@ public class RestoreProtocol {
 
     public static void receive_chunk(ChunkMessage chunkMessage){
         String file_id = chunkMessage.getFile_id();
-        String file_name = FilesListing.get_files_Listing().get_file_name(file_id);
+        String file_name = FilesListing.getInstance().getFileName(file_id);
 
         String chunk_id = file_id + "_" + chunkMessage.get_chunk_no();
 

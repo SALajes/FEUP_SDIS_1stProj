@@ -88,7 +88,7 @@ public class Peer implements RemoteInterface {
 
             //creates folders
             Store.getInstance();
-            FilesListing.get_files_Listing();
+            FilesListing.getInstance();
 
             System.out.println("Peer " + id + " ready");
 
@@ -113,7 +113,7 @@ public class Peer implements RemoteInterface {
 
         String file_id = FileManager.createFileId(file);
         Integer number_of_chunks = (int) Math.ceil((float) file.length() / Macros.CHUNK_MAX_SIZE );
-        FilesListing.get_files_Listing().add_file(file.getName(), file_id, number_of_chunks);
+        FilesListing.getInstance().add_file(file.getName(), file_id, number_of_chunks);
 
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
         BackupProtocol.send_putchunk(Peer.version, Peer.id, replication_degree, file_id, chunkFactory.get_chunks());
@@ -132,7 +132,7 @@ public class Peer implements RemoteInterface {
 
         final String file_name = new File(file_path).getName();
 
-        final String file_id = FilesListing.get_files_Listing().get_file_id(file_name);
+        final String file_id = FilesListing.getInstance().getFileId(file_name);
         if(file_id == null) {
             System.err.println("A file with that name wasn't found, cannot restore a file that was't been backup by this peer");
             return -1;
@@ -140,7 +140,7 @@ public class Peer implements RemoteInterface {
 
         FileManager.create_empty_file_for_restoring( file_name );
 
-        int number_of_chunks = FilesListing.get_files_Listing().get_number_of_chunks(file_name);
+        int number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
 
         RestoreProtocol.send_getchunk(Peer.version, Peer.id, file_id, number_of_chunks);
 
@@ -155,32 +155,25 @@ public class Peer implements RemoteInterface {
      */
     @Override
     public int delete(String file_path)  {
-
-        //a peer should remove from its backing store all chunks belonging to the specified file.
         final String file_name = new File(file_path).getName();
 
         //gets the file_id from the entry with key file_name form allFiles
-        final String file_id = FilesListing.get_files_Listing().get_file_id(file_name);
+        final String file_id = FilesListing.getInstance().getFileId(file_name);
 
         if (file_id == null) {
             System.err.println("File name not found");
             System.exit(-1);
         }
 
-        System.out.println("Deleting folder " + file_id);
-
-        //sends message REMOVE to all peers
-        DeleteProtocol.send_delete(Peer.version, Peer.id, file_id);
-
-        //remove file of own records and files
-        Store.getInstance().remove_Backup_chunks_occurrences(file_id);
-
+        System.out.println("Deleting file " + file_id + " and its folder");
         FileManager.delete_file_folder(Store.getInstance().get_restored_directory_path() + file_name);
 
         // Remove entry with the file_name and correspond file_id from allFiles
-        FilesListing.get_files_Listing().delete_file_records(file_name);
+        FilesListing.getInstance().delete_file_records(file_name, file_id);
 
-
+        System.out.println("Deleting chunks in all peers");
+        //sends message REMOVE to all peers
+        DeleteProtocol.send_delete(Peer.version, Peer.id, file_id);
 
         return 0;
     }
@@ -237,7 +230,7 @@ public class Peer implements RemoteInterface {
 
             for(int i = 0; i < pair.second; i++){
                 state = state + "      id: " + i + "\n"
-                        + "      perceived replication degree: " + Store.getInstance().check_backup_chunks_occurrences(pair.first + "_" + i) + "\n";
+                        + "         perceived replication degree: " + Store.getInstance().check_backup_chunks_occurrences(pair.first + "_" + i) + "\n";
             }
         }
 
@@ -260,8 +253,8 @@ public class Peer implements RemoteInterface {
 
             for(Integer chunk_no : pair.second){
                 state = state + "   id: " + chunk_no + "\n"
-                        + "   size: " + FileManager.retrieveChunkSize(file_id, chunk_no) + "\n"
-                        + "   perceived replication degree: " + replication_degree + "\n";
+                        + "      size: " + FileManager.retrieveChunkSize(file_id, chunk_no) + "\n"
+                        + "      perceived replication degree: " + replication_degree + "\n";
             }
         }
 
@@ -274,6 +267,6 @@ public class Peer implements RemoteInterface {
         state = state + "   Capacity: " + Store.getInstance().getStorageCapacity() + "\n"
                 + "   Occupied: " + Store.getInstance().getOccupiedStorage() + "\n";
 
-        return state + "----------------------";
+        return state + "---------------------------";
     }
 }
