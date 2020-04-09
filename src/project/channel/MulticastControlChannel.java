@@ -44,7 +44,7 @@ public class MulticastControlChannel extends Channel {
                     break;
             }
         } catch (InvalidMessageException e) {
-            e.printStackTrace();
+            e.getMessage();
         }
     }
 }

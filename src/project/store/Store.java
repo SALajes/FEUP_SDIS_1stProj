@@ -120,6 +120,8 @@ public class Store {
      */
     public void RemoveOccupiedStorage(long occupied_space) {
         occupied_storage -= occupied_space;
+        if(occupied_storage < 0)
+            occupied_storage = 0;
     }
 
 
@@ -129,22 +131,26 @@ public class Store {
         return stored_chunks;
     }
 
-    public synchronized void add_stored_chunk(String file_id, int chunk_number, Integer replicationDegree) {
+    public synchronized void add_stored_chunk(String file_id, int chunk_number, Integer replicationDegree, long chunk_length) {
 
         if(!stored_chunks.containsKey(file_id)) {
-
             ArrayList<Integer> chunks_stored = new ArrayList<>();
             chunks_stored.add(chunk_number);
             Pair pair = new Pair<>(replicationDegree, chunks_stored);
             stored_chunks.put(file_id, pair);
 
+            //update the current space used for storage
+            AddOccupiedStorage(chunk_length);
+
             add_stored_chunks_occurrences(file_id, chunk_number, replicationDegree);
-
-        } else if( !checkStoredChunk(file_id, chunk_number)) {
-
+        }
+        else if(!checkStoredChunk(file_id, chunk_number)) {
             Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
             pair.second.add(chunk_number);
             stored_chunks.replace(file_id, pair);
+
+            //update the current space used for storage
+            AddOccupiedStorage(chunk_length);
 
             add_stored_chunks_occurrences(file_id, chunk_number, replicationDegree);
         }

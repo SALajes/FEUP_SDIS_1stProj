@@ -24,18 +24,10 @@ public class ChunkFactory {
 
         chunks = new ArrayList<>();
 
-        try {
-            produce_chunks();
-        } catch (InvalidFileException e) {
-            e.printStackTrace();
-        }
+        produce_chunks();
     }
 
-    /**
-     *
-     * @throws InvalidFileException
-     */
-    private void produce_chunks() throws InvalidFileException {
+    private void produce_chunks() {
         int chunk_no = 0;
 
         byte[] buffer = new byte[Macros.CHUNK_MAX_SIZE];
@@ -43,9 +35,6 @@ public class ChunkFactory {
         try(BufferedInputStream stream = new BufferedInputStream(new FileInputStream(this.file))) {
             int size;
             while((size = stream.read(buffer)) > 0){
-                if(chunk_no >= Macros.MAX_NUMBER_CHUNKS) {
-                    throw new InvalidFileException("File is larger than accepted");
-                }
                 Chunk chunk = new Chunk(chunk_no, Arrays.copyOf(buffer, size), size);
 
                 this.chunks.add(chunk);
@@ -59,8 +48,6 @@ public class ChunkFactory {
                 // If the file size is a multiple of the chunk size, the last chunk has size 0.
                 this.chunks.add(new Chunk(chunks.size(), new byte[0], 0));
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

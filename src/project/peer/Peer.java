@@ -112,7 +112,7 @@ public class Peer implements RemoteInterface {
         }
 
         String file_id = FileManager.createFileId(file);
-        Integer number_of_chunks = (int) Math.ceil((float) file.length() / Macros.CHUNK_MAX_SIZE );
+        int number_of_chunks = (int) Math.ceil((float) file.length() / Macros.CHUNK_MAX_SIZE );
         FilesListing.getInstance().add_file(file.getName(), file_id, number_of_chunks);
 
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
@@ -128,14 +128,16 @@ public class Peer implements RemoteInterface {
      * The client shall specify the file to restore by its pathname.
      */
     @Override
-    public int restore(String file_path) {
+    public int restore(String file_path) throws InvalidFileException {
 
         final String file_name = new File(file_path).getName();
 
-        final String file_id = FilesListing.getInstance().getFileId(file_name);
-        if(file_id == null) {
-            System.err.println("A file with that name wasn't found, cannot restore a file that was't been backup by this peer");
-            return -1;
+        String file_id = "";
+        try{
+            file_id = FilesListing.getInstance().getFileId(file_name);
+        }
+        catch(Exception e){
+            throw new InvalidFileException("File name not found");
         }
 
         FileManager.create_empty_file_for_restoring( file_name );
@@ -154,15 +156,16 @@ public class Peer implements RemoteInterface {
      * @param file_path of the file that is going to be deleted
      */
     @Override
-    public int delete(String file_path)  {
+    public int delete(String file_path) throws InvalidFileException {
         final String file_name = new File(file_path).getName();
 
         //gets the file_id from the entry with key file_name form allFiles
-        final String file_id = FilesListing.getInstance().getFileId(file_name);
-
-        if (file_id == null) {
-            System.err.println("File name not found");
-            System.exit(-1);
+        String file_id = "";
+        try{
+            file_id = FilesListing.getInstance().getFileId(file_name);
+        }
+        catch(Exception e){
+            throw new InvalidFileException("File name not found");
         }
 
         System.out.println("Deleting file " + file_id + " and its folder");

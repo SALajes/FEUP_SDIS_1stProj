@@ -100,11 +100,11 @@ public class TestApp {
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (NotBoundException e) {
-            e.printStackTrace();
+            System.out.println("Bound Exception: Peer service access point (" + peer_ap + ") is not bound");
         } catch (InvalidMessageException e) {
             e.getMessage();
         } catch (InvalidFileException e) {
-            e.printStackTrace();
+            e.getMessage();
         }
     }
 }

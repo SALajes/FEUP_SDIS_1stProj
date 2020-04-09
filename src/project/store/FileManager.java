@@ -153,8 +153,8 @@ public class FileManager {
         if (folder_files != null && folder_files.length > 0) {
             for (File f : folder_files) {
                 if (f.isFile()) {
-                    Store.getInstance().RemoveOccupiedStorage(file.length());
-                    file.delete();
+                    Store.getInstance().RemoveOccupiedStorage(f.length());
+                    f.delete();
                 }
                 else if (!f.delete()) {
                     return false;
@@ -197,10 +197,10 @@ public class FileManager {
 
     }
 
-    public static int retrieveChunkSize(String file_id, int chunk_no){
+    public static long retrieveChunkSize(String file_id, int chunk_no){
         final String chunk_path = Store.getInstance().get_store_directory_path() + "/" + file_id + "/" + chunk_no;
         File file = new File(chunk_path);
-        return (int) file.length();
+        return file.length();
     }
 
     /**
@@ -251,7 +251,6 @@ public class FileManager {
      * @return true if successful or false otherwise
      */
     public static boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, Integer replicationDegree) {
-
         //check if the chunk already exists
         if (Store.getInstance().checkStoredChunk(file_id, chunk_number)) {
             return true;
@@ -280,9 +279,7 @@ public class FileManager {
             return false;
         }
 
-        Store.getInstance().add_stored_chunk(file_id, chunk_number, replicationDegree);
-        //update the current space used for storage
-        Store.getInstance().AddOccupiedStorage(chunk_body.length);
+        Store.getInstance().add_stored_chunk(file_id, chunk_number, replicationDegree, chunk_body.length);
 
         return true;
     }

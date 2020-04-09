@@ -73,6 +73,5 @@ public class BackupProtocol {
             //adds replication degree of the stored file
             Store.getInstance().add_replication_degree(file_id, message.getChunk_no(), peer_id);
         }
-
     }
 }

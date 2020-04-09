@@ -51,10 +51,7 @@ public class MessageParser {
      * @return chunk data
      */
     private static byte[] getMessageBody(byte[] message, int message_length, int first_CRLF_position){
-        int index = first_CRLF_position + 4;
-
-        // copyOfRange(byte[] original, int starting_index, int ending_index)
-        return copyOfRange(message, index, message_length);
+        return copyOfRange(message, first_CRLF_position + 4, message_length);
     }
 
     /**

@@ -28,7 +28,7 @@ public class MulticastDataRecoveryChannel extends Channel {
 
 
         } catch (InvalidMessageException e) {
-            e.printStackTrace();
+            e.getMessage();
         }
     }
 }

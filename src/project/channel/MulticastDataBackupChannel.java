@@ -31,7 +31,7 @@ public class MulticastDataBackupChannel extends Channel {
             else System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());
 
         } catch (InvalidMessageException e) {
-            e.printStackTrace();
+            e.getMessage();
         }
     }
 }
