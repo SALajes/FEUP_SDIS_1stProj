@@ -162,12 +162,12 @@ public class Peer implements RemoteInterface {
         //gets the file_id from the entry with key file_name form allFiles
         final String file_id = FilesListing.get_files_Listing().get_file_id(file_name);
 
-        System.out.println("Deleting folder " + file_id);
-
         if (file_id == null) {
-            System.err.println("File name was't find, cannot delete file that wasn't been backup");
+            System.err.println("File name not found");
             System.exit(-1);
         }
+
+        System.out.println("Deleting folder " + file_id);
 
         //sends message REMOVE to all peers
         DeleteProtocol.send_delete(Peer.version, Peer.id, file_id);

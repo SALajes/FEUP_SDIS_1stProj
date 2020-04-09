@@ -123,7 +123,7 @@ public class Store {
     }
 
 
-    // -----------  stored chunks
+    // --------------------- STORED CHUNKS ----------------------------
 
     public ConcurrentHashMap<String, Pair<Integer, ArrayList<Integer>>> get_stored_chunks() {
         return stored_chunks;
@@ -175,6 +175,12 @@ public class Store {
     }
 
     public void remove_stored_chunks(String file_id ){
+        ArrayList<Integer> chunk_nos = new ArrayList<>(stored_chunks.get(file_id).second);
+
+        for(Integer chunk_number : chunk_nos) {
+            stored_chunks_occurrences.remove(file_id + "_" + chunk_number);
+        }
+
         stored_chunks.remove(file_id);
     }
 
