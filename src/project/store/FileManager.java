@@ -229,8 +229,10 @@ public class FileManager {
             return false;
         }
 
+        Store.getInstance().RemoveOccupiedStorage((int) chunk_file.length());
+
         if (chunk_file.delete()) {
-            Store.getInstance().RemoveOccupiedStorage((int) chunk_file.length());
+
             //removes from stored chunks Hashtable
             Store.getInstance().remove_stored_chunk(file_id, chunk_number);
 
@@ -250,7 +252,8 @@ public class FileManager {
      * @param replicationDegree wanted replication degree
      * @return true if successful or false otherwise
      */
-    public static boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, Integer replicationDegree) {
+    public synchronized static boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, Integer replicationDegree) {
+
         //check if the chunk already exists
         if (Store.getInstance().checkStoredChunk(file_id, chunk_number)) {
             return true;

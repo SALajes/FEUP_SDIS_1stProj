@@ -99,7 +99,7 @@ public class Peer implements RemoteInterface {
     }
 
     public int backup(String file_path, int replication_degree) throws InvalidMessageException, InvalidFileException {
-        
+
         if(replication_degree <= 0 || replication_degree > 9)
             throw new InvalidMessageException("Replication degree is invalid");
 

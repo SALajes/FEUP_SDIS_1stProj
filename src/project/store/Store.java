@@ -31,7 +31,7 @@ public class Store {
     private static String restored_directory_path;
 
     private long occupied_storage = 0; //in bytes
-    private long storage_capacity = Macros.INITIAL_STORAGE; //Initial there isn't restrictions of space
+    private long storage_capacity = Macros.INITIAL_STORAGE;
 
 
     /**
@@ -67,10 +67,12 @@ public class Store {
     }
 
 
-
     // ---------------------------------------------- RECLAIM -----------------------------------
+
     public void setStorageCapacity(Integer new_capacity) {
         this.storage_capacity = new_capacity;
+
+        delete_over_replicated();
 
         Set<String> keys = stored_chunks.keySet();
 
@@ -80,15 +82,42 @@ public class Store {
 
         //deletes necessary chunk to have that space
         while((new_capacity < occupied_storage) && itr.hasNext()) {
+
             // Getting Key
             file_id = itr.next();
 
             ArrayList<Integer> chunks_nos = new ArrayList<>(stored_chunks.get(file_id).second);
 
             for(Integer chunk_number : chunks_nos) {
+
                 FileManager.removeChunk(file_id, chunk_number);
                 if(new_capacity >= occupied_storage){
                     return;
+                }
+            }
+        }
+    }
+
+    private void delete_over_replicated() {
+        Set<String> keys = stored_chunks.keySet();
+
+        //Obtaining iterator over set entries
+        Iterator<String> itr = keys.iterator();
+        String file_id;
+
+        //deletes necessary chunk to have that space
+        while((this.storage_capacity < occupied_storage) && itr.hasNext()) {
+            // Getting Key
+            file_id = itr.next();
+
+            ArrayList<Integer> chunks_nos = new ArrayList<>(stored_chunks.get(file_id).second);
+
+            for(Integer chunk_number : chunks_nos) {
+                if(has_more_than_replication_degree(file_id + "_" + chunk_number) ) {
+                    FileManager.removeChunk(file_id, chunk_number);
+                    if (this.storage_capacity >= occupied_storage) {
+                        return;
+                    }
                 }
             }
         }
@@ -110,7 +139,7 @@ public class Store {
      * used when a new chunk is store ( by backup )
      * @param space_wanted storage space added
      */
-    public void AddOccupiedStorage(long space_wanted) {
+    public synchronized void AddOccupiedStorage(long space_wanted) {
         occupied_storage += space_wanted;
     }
 
@@ -191,6 +220,7 @@ public class Store {
     }
 
     //-------------------- Stored Chunks Occurrences ------------------
+
     private void add_stored_chunks_occurrences(String file_id, int chunk_number, Integer replicationDegree) {
         ArrayList<Integer> occurrences = new ArrayList<>();
         occurrences.add(Peer.id);
@@ -217,6 +247,10 @@ public class Store {
 
     public boolean has_replication_degree(String chunk_id) {
        return (check_stored_chunks_occurrences(chunk_id) >= this.stored_chunks_occurrences.get(chunk_id).first);
+    }
+
+    public boolean has_more_than_replication_degree(String chunk_id) {
+        return (check_stored_chunks_occurrences(chunk_id) >= this.stored_chunks_occurrences.get(chunk_id).first);
     }
 
     public Integer get_replication_degree(String chunk_id) {
