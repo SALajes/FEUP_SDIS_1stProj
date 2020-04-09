@@ -6,6 +6,7 @@ import project.peer.Peer;
 import project.protocols.ReclaimProtocol;
 
 import java.io.*;
+import java.nio.channels.FileLockInterruptionException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

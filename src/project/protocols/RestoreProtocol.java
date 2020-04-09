@@ -63,7 +63,6 @@ public class RestoreProtocol {
         String chunk_id = file_id + "_" + chunkMessage.get_chunk_no();
 
         if(Store.getInstance().check_backup_chunks_occurrences(chunk_id) != -1) {
-            System.out.println(file_name);
             FileManager.write_chunk_to_restored_file(file_name, chunkMessage.getChunk(), chunkMessage.get_chunk_no());
         }
         Store.getInstance().check_getchunk_reply(chunk_id);

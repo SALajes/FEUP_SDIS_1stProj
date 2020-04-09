@@ -169,6 +169,8 @@ public class Store {
             stored_chunks.put(file_id, pair);
 
             //update the current space used for storage
+            System.out.println("RECEIVED CHUNK: " + file_id + " No:" + chunk_number + " LEN:" + chunk_length);
+
             AddOccupiedStorage(chunk_length);
 
             add_stored_chunks_occurrences(file_id, chunk_number, replicationDegree);
@@ -177,6 +179,8 @@ public class Store {
             Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
             pair.second.add(chunk_number);
             stored_chunks.replace(file_id, pair);
+
+            System.out.println("RECEIVED CHUNK: " + file_id + " No:" + chunk_number + " LEN:" + chunk_length);
 
             //update the current space used for storage
             AddOccupiedStorage(chunk_length);
