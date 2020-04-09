@@ -6,7 +6,6 @@ import project.peer.Peer;
 import project.protocols.ReclaimProtocol;
 
 import java.io.*;
-import java.nio.channels.FileLockInterruptionException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -17,9 +16,9 @@ public class FileManager {
      * Creates an empty file to start the restoring procedure or the backup
      * @return true if successful, and false otherwise
      */
-    public static boolean create_empty_file_for_restoring(String file_name) {
-        String restore_file_path = Store.getInstance().get_restored_directory_path() + file_name;
-        return create_empty_file(restore_file_path);
+    public static boolean createEmptyFileForRestoring(String file_name) {
+        String restore_file_path = Store.getInstance().getRestoredDirectoryPath() + file_name;
+        return createEmptyFile(restore_file_path);
     }
 
     /**
@@ -27,7 +26,7 @@ public class FileManager {
      * if exists return true but doesn't creates a new file
      * @param file_path path of the file that is being created
      */
-    public static boolean create_empty_file(String file_path) {
+    public static boolean createEmptyFile(String file_path) {
 
         try {
             File file = new File(file_path);
@@ -50,7 +49,7 @@ public class FileManager {
      * Idempotent Method that creates a directory given the path
      * @return success if directory was or is created and false if not
      */
-    public static boolean create_directory(String directory_path) {
+    public static boolean createDirectory(String directory_path) {
 
         File directory = new File(directory_path);
         if (!directory.exists()) {
@@ -98,9 +97,9 @@ public class FileManager {
      * @param chunk_number number of the chunk
      * @return true if success and false otherwise
      */
-    public static synchronized boolean write_chunk_to_restored_file(String file_name, byte[] chunk_data, int chunk_number) {
+    public static synchronized boolean writeChunkToRestoredFile(String file_name, byte[] chunk_data, int chunk_number) {
 
-        String file_path = Store.getInstance().get_restored_directory_path() + "/" + file_name;
+        String file_path = Store.getInstance().getRestoredDirectoryPath() + "/" + file_name;
 
         //Random access file offers a seek feature that can go directly to a particular position
         try (RandomAccessFile file = new RandomAccessFile(file_path, "rw")) {
@@ -115,13 +114,13 @@ public class FileManager {
     }
 
 
-    public static void delete_files_folders(String file_id) {
-        delete_file_folder( Store.getInstance().get_store_directory_path() + file_id );
-        Store.getInstance().remove_stored_chunks(file_id);
+    public static void deleteFilesFolders(String file_id) {
+        deleteFileFolder( Store.getInstance().getStoreDirectoryPath() + file_id );
+        Store.getInstance().removeStoredChunks(file_id);
 
         String file_name = FilesListing.getInstance().getFileName(file_id);
         if( file_name != null) {
-            delete_file_folder( Store.getInstance().get_restored_directory_path() + file_id );
+            deleteFileFolder( Store.getInstance().getRestoredDirectoryPath() + file_id );
             //You should not delete the original file, when you execute the Delete protocol
             //So the folder files isn't deleted
         }
@@ -133,7 +132,7 @@ public class FileManager {
      * @param file_path directory file
      * @return true if successful, and false other wise
      */
-    public static boolean delete_file_folder(String file_path) {
+    public static boolean deleteFileFolder(String file_path) {
 
         File file = new File(file_path);
 
@@ -176,7 +175,7 @@ public class FileManager {
         if(Store.getInstance().checkStoredChunk(file_id, chunk_no)) {
             Chunk chunk;
             //get the chunk information from the chunks saved file
-            final String chunk_path = Store.getInstance().get_store_directory_path() + "/" + file_id + "/" + chunk_no;
+            final String chunk_path = Store.getInstance().getStoreDirectoryPath() + "/" + file_id + "/" + chunk_no;
             File file = new File(chunk_path);
             int chunk_size = (int) file.length();
             byte[] chunk_data = new byte[chunk_size];
@@ -199,7 +198,7 @@ public class FileManager {
     }
 
     public static long retrieveChunkSize(String file_id, int chunk_no){
-        final String chunk_path = Store.getInstance().get_store_directory_path() + "/" + file_id + "/" + chunk_no;
+        final String chunk_path = Store.getInstance().getStoreDirectoryPath() + "/" + file_id + "/" + chunk_no;
         File file = new File(chunk_path);
         return file.length();
     }
@@ -221,7 +220,7 @@ public class FileManager {
         }
 
         //chunk will be in stored_directory/file_id/chunk_no
-        String chunk_dir = Store.getInstance().get_store_directory_path() + file_id + "/"+ chunk_number;
+        String chunk_dir = Store.getInstance().getStoreDirectoryPath() + file_id + "/"+ chunk_number;
 
         File chunk_file = new File(chunk_dir);
 
@@ -235,9 +234,9 @@ public class FileManager {
         if (chunk_file.delete()) {
 
             //removes from stored chunks Hashtable
-            Store.getInstance().remove_stored_chunk(file_id, chunk_number);
+            Store.getInstance().removeStoredChunk(file_id, chunk_number);
 
-            ReclaimProtocol.send_removed(Peer.version, Peer.id, file_id, chunk_number);
+            ReclaimProtocol.sendRemoved(Peer.version, Peer.id, file_id, chunk_number);
             return true;
         }
 
@@ -266,10 +265,10 @@ public class FileManager {
             return false;
         }
 
-        String chunk_directory =  Store.getInstance().get_store_directory_path() + file_id + "/";
+        String chunk_directory =  Store.getInstance().getStoreDirectoryPath() + file_id + "/";
 
         // Idempotent Method
-        FileManager.create_directory(chunk_directory);
+        FileManager.createDirectory(chunk_directory);
         String chunk_path = chunk_directory + chunk_number;
 
         try {
@@ -283,7 +282,7 @@ public class FileManager {
             return false;
         }
 
-        Store.getInstance().add_stored_chunk(file_id, chunk_number, replicationDegree, chunk_body.length);
+        Store.getInstance().addStoredChunk(file_id, chunk_number, replicationDegree, chunk_body.length);
 
         return true;
     }

@@ -87,7 +87,7 @@ public class TestApp {
                         System.exit(-6);
                     }
                     //retrieve the internal state of the peer
-                    System.out.println(peer.retrieve_state());
+                    System.out.println(peer.state());
                     break;
                 default:
                     usage();

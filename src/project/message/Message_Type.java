@@ -1,6 +1,6 @@
 package project.message;
 
-public enum Message_type {
+public enum Message_Type {
     PUTCHUNK,
     STORED,
     GETCHUNK,

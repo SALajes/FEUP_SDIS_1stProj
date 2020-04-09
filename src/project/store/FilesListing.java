@@ -1,12 +1,10 @@
 package project.store;
 
 import project.peer.Peer;
-import project.protocols.BackupProtocol;
 import project.protocols.DeleteProtocol;
 
 import java.io.*;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -66,13 +64,13 @@ public class FilesListing {
             System.out.println("Deleting " + pair.second + " chunks from the out of date file");
 
             //deletes file from network storage
-            DeleteProtocol.send_delete(Peer.version, Peer.id, pair.first );
+            DeleteProtocol.sendDelete(Peer.version, Peer.id, pair.first );
 
             //deletes own files with chunks of the file in the 3 folders ( files, stored, restored)
-            FileManager.delete_files_folders(pair.first);
+            FileManager.deleteFilesFolders(pair.first);
 
             //old file is ours so unregister chunks of the file
-            Store.getInstance().remove_stored_chunks(pair.first);
+            Store.getInstance().removeStoredChunks(pair.first);
 
         }
         set_files_disk_info();
@@ -82,7 +80,7 @@ public class FilesListing {
         int number_of_chunks = getNumberOfChunks(file_name);
 
         for(int i = 0; i < number_of_chunks; i++)
-            Store.getInstance().remove_Backup_chunks_occurrences(file_id + "_" + i);
+            Store.getInstance().removeBackupChunksOccurrences(file_id + "_" + i);
 
         files.remove(file_name);
         set_files_disk_info();
@@ -95,7 +93,7 @@ public class FilesListing {
      */
     public boolean set_files_disk_info() {
         try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(Store.getInstance().get_files_info_directory_path()));
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(Store.getInstance().getFilesInfoDirectoryPath()));
             objectOutputStream.writeObject(this);
         } catch (Exception e) {
             e.getStackTrace();
@@ -112,14 +110,14 @@ public class FilesListing {
     public static boolean get_files_disk_info() {
 
         //if file is empty there is nothing to have in the concurrentMap
-        if (new File(Store.getInstance().get_files_info_directory_path()).length() == 0) {
+        if (new File(Store.getInstance().getFilesInfoDirectoryPath()).length() == 0) {
             files = new ConcurrentHashMap<>();
             System.out.println("There isn't previous file info.");
             return true;
         }
 
         try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(Store.getInstance().get_files_info_directory_path()));
+            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(Store.getInstance().getFilesInfoDirectoryPath()));
             filesListing = (FilesListing) objectInputStream.readObject();
             System.out.println("Files Concurrent map is updated according to disk info");
 

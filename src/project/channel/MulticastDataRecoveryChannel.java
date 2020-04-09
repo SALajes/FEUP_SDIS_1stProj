@@ -4,7 +4,6 @@ import project.message.*;
 import project.peer.Peer;
 import project.protocols.RestoreProtocol;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 
 public class MulticastDataRecoveryChannel extends Channel {
@@ -14,7 +13,7 @@ public class MulticastDataRecoveryChannel extends Channel {
     }
 
     @Override
-    protected void readable_message(DatagramPacket packet) {
+    protected void readableMessage(DatagramPacket packet) {
         try {
             byte [] raw_message = packet.getData();
             BaseMessage message = MessageParser.parseMessage(raw_message, packet.getLength());
@@ -22,8 +21,8 @@ public class MulticastDataRecoveryChannel extends Channel {
             if(message.getSender_id() == Peer.id)
                 return;
 
-            if(message.getMessage_type() == Message_type.CHUNK)
-                RestoreProtocol.receive_chunk((ChunkMessage) message);
+            if(message.getMessage_type() == Message_Type.CHUNK)
+                RestoreProtocol.receiveChunk((ChunkMessage) message);
             else System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());
 
 

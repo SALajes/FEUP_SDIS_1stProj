@@ -7,7 +7,6 @@ import project.protocols.DeleteProtocol;
 import project.protocols.ReclaimProtocol;
 import project.protocols.RestoreProtocol;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 
 public class MulticastControlChannel extends Channel {
@@ -17,7 +16,7 @@ public class MulticastControlChannel extends Channel {
     }
 
     @Override
-    protected void readable_message(DatagramPacket packet) {
+    protected void readableMessage(DatagramPacket packet) {
         try {
             byte [] raw_message = packet.getData();
             BaseMessage message = MessageParser.parseMessage(raw_message, raw_message.length);
@@ -28,16 +27,16 @@ public class MulticastControlChannel extends Channel {
 
             switch (message.getMessage_type()) {
                 case STORED:
-                    BackupProtocol.receive_stored((StoredMessage) message);
+                    BackupProtocol.receiveStored((StoredMessage) message);
                     break;
                 case GETCHUNK:
-                    RestoreProtocol.receive_getchunk((GetChunkMessage) message);
+                    RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
                     break;
                 case DELETE:
-                    DeleteProtocol.receive_delete((DeleteMessage) message);
+                    DeleteProtocol.receiveDelete((DeleteMessage) message);
                     break;
                 case REMOVED:
-                    ReclaimProtocol.receive_removed((RemovedMessage) message);
+                    ReclaimProtocol.receiveRemoved((RemovedMessage) message);
                     break;
                 default:
                     System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());

@@ -1,13 +1,8 @@
 package project.chunk;
 
-import project.InvalidFileException;
 import project.Macros;
-import project.store.Store;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -24,10 +19,10 @@ public class ChunkFactory {
 
         chunks = new ArrayList<>();
 
-        produce_chunks();
+        produceChunks();
     }
 
-    private void produce_chunks() {
+    private void produceChunks() {
         int chunk_no = 0;
 
         byte[] buffer = new byte[Macros.CHUNK_MAX_SIZE];
@@ -58,7 +53,7 @@ public class ChunkFactory {
      * @return
      * chunks
      */
-    public ArrayList<Chunk> get_chunks(){
+    public ArrayList<Chunk> getChunks(){
         return chunks;
     }
 }

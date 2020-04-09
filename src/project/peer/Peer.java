@@ -116,7 +116,7 @@ public class Peer implements RemoteInterface {
         FilesListing.getInstance().add_file(file.getName(), file_id, number_of_chunks);
 
         ChunkFactory chunkFactory = new ChunkFactory(file, replication_degree);
-        BackupProtocol.send_putchunk(Peer.version, Peer.id, replication_degree, file_id, chunkFactory.get_chunks());
+        BackupProtocol.sendPutchunk(Peer.version, Peer.id, replication_degree, file_id, chunkFactory.getChunks());
 
         return 0;
     }
@@ -140,13 +140,13 @@ public class Peer implements RemoteInterface {
             throw new InvalidFileException("File name not found");
         }
 
-        FileManager.create_empty_file_for_restoring( file_name );
+        FileManager.createEmptyFileForRestoring( file_name );
 
         int number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
 
-        RestoreProtocol.send_getchunk(Peer.version, Peer.id, file_id, number_of_chunks);
+        RestoreProtocol.sendGetchunk(Peer.version, Peer.id, file_id, number_of_chunks);
 
-        Store.getInstance().add_restored_file(file_id, file_name);
+        Store.getInstance().addRestoredFile(file_id, file_name);
 
         return 0;
     }
@@ -169,14 +169,14 @@ public class Peer implements RemoteInterface {
         }
 
         System.out.println("Deleting file " + file_id + " and its folder");
-        FileManager.delete_file_folder(Store.getInstance().get_restored_directory_path() + file_name);
+        FileManager.deleteFileFolder(Store.getInstance().getRestoredDirectoryPath() + file_name);
 
         // Remove entry with the file_name and correspond file_id from allFiles
         FilesListing.getInstance().delete_file_records(file_name, file_id);
 
         System.out.println("Deleting chunks in all peers");
         //sends message REMOVE to all peers
-        DeleteProtocol.send_delete(Peer.version, Peer.id, file_id);
+        DeleteProtocol.sendDelete(Peer.version, Peer.id, file_id);
 
         return 0;
     }
@@ -204,17 +204,17 @@ public class Peer implements RemoteInterface {
      * @return
      */
     @Override
-    public String retrieve_state() {
-        String state = retrieve_backup_state() + "\n";
+    public String state() {
+        String state = retrieveBackupState() + "\n";
 
-        state += retrieve_stored_chunks_state() + "\n";
+        state += retrieveStoredChunksState() + "\n";
 
-        state += retrieve_storage_state();
+        state += retrieveStorageState();
 
         return state;
     }
 
-    private String retrieve_backup_state() {
+    private String retrieveBackupState() {
         String state = "|--------- BACKUP --------|\n";
         ConcurrentHashMap<String, Pair<String, Integer>> files = FilesListing.get_files();
 
@@ -224,7 +224,7 @@ public class Peer implements RemoteInterface {
             ConcurrentHashMap.Entry file = (ConcurrentHashMap.Entry)it.next();
             String file_name = (String) file.getKey();
             Pair<String, Integer> pair = (Pair<String, Integer>) file.getValue();// Pair( file_id , number_of_chunks )
-            int replication_degree = Store.getInstance().get_backup_chunk_replication_degree(pair.first + "_0");
+            int replication_degree = Store.getInstance().getBackupChunkReplicationDegree(pair.first + "_0");
 
             state = state + "> path: " + file_name + "\n"
                     + "   id: " + pair.first + "\n"
@@ -233,38 +233,37 @@ public class Peer implements RemoteInterface {
 
             for(int i = 0; i < pair.second; i++){
                 state = state + "      id: " + i + "\n"
-                        + "         perceived replication degree: " + Store.getInstance().check_backup_chunks_occurrences(pair.first + "_" + i) + "\n";
+                        + "         perceived replication degree: " + Store.getInstance().checkBackupChunksOccurrences(pair.first + "_" + i) + "\n";
             }
         }
 
         return state;
     }
 
-    private String retrieve_stored_chunks_state() {
+    private String retrieveStoredChunksState() {
         String state = "|----- STORED CHUNKS -----|\n";
 
-        ConcurrentHashMap<String, Pair<Integer, ArrayList<Integer>>> stored_chunks = Store.getInstance().get_stored_chunks();
+        ConcurrentHashMap<String, Pair<Integer, ArrayList<Integer>>> stored_chunks = Store.getInstance().getStoredChunks();
         Iterator it = stored_chunks.entrySet().iterator();
 
         while(it.hasNext()) {
             ConcurrentHashMap.Entry chunks = (ConcurrentHashMap.Entry) it.next();
             String file_id = (String) chunks.getKey();
             Pair<Integer,ArrayList<Integer>> pair = (Pair<Integer,ArrayList<Integer>>) chunks.getValue();// Pair( replication degree , chunks ids )
-            int replication_degree = pair.first;
 
             state = state + "> file_id: " + file_id + "\n";
 
             for(Integer chunk_no : pair.second){
                 state = state + "   id: " + chunk_no + "\n"
                         + "      size: " + FileManager.retrieveChunkSize(file_id, chunk_no) + "\n"
-                        + "      perceived replication degree: " + replication_degree + "\n";
+                        + "      perceived replication degree: " + Store.getInstance().checkStoredChunksOccurrences(file_id + "_" + chunk_no) + "\n";
             }
         }
 
         return state;
     }
 
-    private String retrieve_storage_state() {
+    private String retrieveStorageState() {
         String state = "|----- STORAGE STATE -----|\n";
 
         state = state + "   Capacity: " + Store.getInstance().getStorageCapacity() + "\n"

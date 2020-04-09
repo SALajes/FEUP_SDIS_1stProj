@@ -1,8 +1,6 @@
 package project.channel;
 
 import project.Macros;
-import project.message.BaseMessage;
-import project.message.InvalidMessageException;
 import project.peer.Peer;
 
 import java.io.IOException;
@@ -24,7 +22,7 @@ public abstract class Channel implements Runnable {
         }
     }
 
-    public void send_message(byte[] message){
+    public void sendMessage(byte[] message){
         try{
             MulticastSocket socket = new MulticastSocket(this.port);
             socket.setTimeToLive(Macros.TTL);
@@ -42,7 +40,7 @@ public abstract class Channel implements Runnable {
         }
     }
 
-    protected abstract void readable_message(DatagramPacket packet);
+    protected abstract void readableMessage(DatagramPacket packet);
 
     @Override
     public void run(){
@@ -59,7 +57,7 @@ public abstract class Channel implements Runnable {
 
                 socket.receive(packet);
 
-                Runnable read_message_task = () -> readable_message(packet);
+                Runnable read_message_task = () -> readableMessage(packet);
 
                 Peer.channel_executor.submit(read_message_task);
             }

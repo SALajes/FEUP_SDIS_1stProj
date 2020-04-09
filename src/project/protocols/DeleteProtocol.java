@@ -7,21 +7,21 @@ import project.store.Store;
 
 public class DeleteProtocol {
 
-    public static void send_delete(double version, int sender_id, String file_id){
+    public static void sendDelete(double version, int sender_id, String file_id){
         DeleteMessage deleteMessage = new DeleteMessage( version, sender_id, file_id);
-        Runnable task = () -> process_delete_message(deleteMessage);
+        Runnable task = () -> processDelete(deleteMessage);
         Peer.scheduled_executor.execute(task);
     }
 
-    public static void process_delete_message(DeleteMessage deleteMessage){
-        Peer.MC.send_message(deleteMessage.convert_message());
+    public static void processDelete(DeleteMessage deleteMessage){
+        Peer.MC.sendMessage(deleteMessage.convertMessage());
     }
 
-    public static void receive_delete(DeleteMessage deleteMessage){
+    public static void receiveDelete(DeleteMessage deleteMessage){
         String file_id = deleteMessage.getFile_id();
 
         //delete all files and records in stored
-        FileManager.delete_file_folder(Store.getInstance().get_store_directory_path() + file_id);
-        Store.getInstance().remove_stored_chunks(file_id);
+        FileManager.deleteFileFolder(Store.getInstance().getStoreDirectoryPath() + file_id);
+        Store.getInstance().removeStoredChunks(file_id);
     }
 }

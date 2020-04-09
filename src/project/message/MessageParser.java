@@ -1,6 +1,5 @@
 package project.message;
 
-import project.InvalidFileException;
 import project.Macros;
 
 import java.util.Arrays;
@@ -70,7 +69,7 @@ public class MessageParser {
 
         List<String> message_header = getMessageHeaderFields(new String(message, 0, first_CRLF_position));
 
-        switch (Message_type.valueOf(message_header.get(1))) {
+        switch (Message_Type.valueOf(message_header.get(1))) {
             case PUTCHUNK:
                 return new PutChunkMessage(
                         Double.parseDouble(message_header.get(0).trim()), //version
