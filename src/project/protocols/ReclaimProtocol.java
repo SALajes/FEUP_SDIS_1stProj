@@ -48,10 +48,14 @@ public class ReclaimProtocol {
             if(!Store.getInstance().hasReplicationDegree(chunk_id)) {
                 System.out.println("File lost is replication degree");
 
-                Runnable task = ()-> sendPutchunk(Peer.version, Peer.id, Store.getInstance().getReplicationDegree(chunk_id), file_id, FileManager.retrieveChunk(file_id, chunk_number));
+                Chunk chunk = FileManager.retrieveChunk(file_id, chunk_number);
 
-                //initiate the chunk backup subprotocol after a random delay uniformly distributed between 0 and 400 ms
-                Peer.scheduled_executor.schedule(task, new Random().nextInt(401), TimeUnit.MILLISECONDS);
+                if(chunk != null) {
+                    Runnable task = () -> sendPutchunk(Peer.version, Peer.id, Store.getInstance().getReplicationDegree(chunk_id), file_id, chunk);
+
+                    //initiate the chunk backup subprotocol after a random delay uniformly distributed between 0 and 400 ms
+                    Peer.scheduled_executor.schedule(task, new Random().nextInt(401), TimeUnit.MILLISECONDS);
+                }
             }
         }
     }
@@ -69,7 +73,7 @@ public class ReclaimProtocol {
 
     private static void processPutchunk(byte[] message, int replication_degree, String chunk_id, int tries) {
 
-        if(tries > 5){
+        if(tries >= 5){
             System.out.println("Put chunk failed desired replication degree: " + chunk_id);
             return;
         }
