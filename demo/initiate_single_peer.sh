@@ -1,3 +1,9 @@
+if [ $? != 1 ]
+then
+  echo " Usage: sh ./initiate_single_peer.sh <sufix>"
+  exit 1
+fi
+
 PEER="thisispeer"
 
 access_point="$PEER$1"

@@ -1,3 +1,9 @@
+if [ $? != 1 ]
+then
+  echo "Usage: sh ./initiate_peers.sh <n_peers>"
+  exit 1
+fi
+
 sh "./finish_peers.sh"
 
 cd ../src

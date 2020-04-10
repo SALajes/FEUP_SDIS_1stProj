@@ -1,6 +1,6 @@
-if [ $1 -gt 0 ]
+if [ $? != 1 ]
 then
-  echo "Insert valid number of peer"
+  echo " Usage: sh ./finish_single_peer.sh <sufix>"
   exit 1
 fi
 
