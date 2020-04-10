@@ -8,6 +8,7 @@ import project.store.FileManager;
 import project.store.FilesListing;
 import project.store.Store;
 
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +51,11 @@ public class BackupProtocol {
 
         String file_id = putchunk.getFile_id();
 
+        if(Store.getInstance().checkBackupChunksOccurrences(file_id + "_" + putchunk.getChunkNo()) != -1) {
+            System.out.println("A peer can't store a chunk of own file");
+            return;
+        }
+
         if(FileManager.storeChunk(file_id, putchunk.getChunkNo(), putchunk.getChunk(), putchunk.getReplicationDegree())){
             StoredMessage stored = new StoredMessage(putchunk.getVersion(), Peer.id, putchunk.getFile_id(), putchunk.getChunkNo());
 
@@ -65,7 +71,7 @@ public class BackupProtocol {
     public static void receiveStored(StoredMessage message){
         String file_id = message.getFile_id();
         String chunk_id = file_id + "_" + message.getChunkNo();
-        Integer peer_id = message.getSender_id();
+        int peer_id = message.getSender_id();
 
         if(FilesListing.getInstance().getFileName(file_id) != null) {
             Store.getInstance().addBackupChunksOccurrences(chunk_id, peer_id );
