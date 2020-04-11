@@ -6,7 +6,13 @@ import project.peer.Peer;
 import project.protocols.ReclaimProtocol;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -101,16 +107,40 @@ public class FileManager {
 
         String file_path = Store.getInstance().getRestoredDirectoryPath() + "/" + file_name;
 
-        //Random access file offers a seek feature that can go directly to a particular position
-        try (RandomAccessFile file = new RandomAccessFile(file_path, "rw")) {
-            file.seek(chunk_number * Macros.CHUNK_MAX_SIZE);
-            file.write(chunk_data);
-            return true;
+        ByteBuffer buffer = ByteBuffer.wrap(chunk_data);
+        Path path = Paths.get(file_path);
+        AsynchronousFileChannel channel ;
+
+        try {
+            channel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE);
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Couldn't append chunk number " + chunk_number + " to file " + file_name + ".");
+            System.err.println("Couldn't open restore file");
             return false;
         }
+
+        CompletionHandler handler = new CompletionHandler() {
+            @Override
+            public void completed(Object result, Object attachment) {
+                System.out.println("Restore of chunk " + chunk_number + " completed and " + result + " bytes are written.");
+            }
+            @Override
+            public void failed(Throwable exc, Object attachment) {
+                System.out.println("Restore failed with exception:");
+                exc.printStackTrace();
+            }
+        };
+
+        channel.write(buffer, chunk_number * Macros.CHUNK_MAX_SIZE, "", handler);
+        try {
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Couldn't close restore file");
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -270,16 +300,38 @@ public class FileManager {
         // Idempotent Method
         FileManager.createDirectory(chunk_directory);
         String chunk_path = chunk_directory + chunk_number;
+        FileManager.createEmptyFile(chunk_path);
+
+        ByteBuffer buffer = ByteBuffer.wrap(chunk_body);
+
+        Path path = Paths.get(chunk_path);
+
+        AsynchronousFileChannel channel = null;
 
         try {
-            //FileOutputStream.write() method automatically create a new file and write content to it.
-            FileOutputStream file = new FileOutputStream(chunk_path);
-            file.write(chunk_body);
-            file.close();
-
+            channel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE);
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+        }
+
+        CompletionHandler handler = new CompletionHandler() {
+            @Override
+            public void completed(Object result, Object attachment) {
+                System.out.println( "Store of the chunk completed and " + result + " bytes are written.");
+            }
+            @Override
+            public void failed(Throwable exc, Object attachment) {
+                System.out.println(attachment + " failed with exception:");
+                exc.printStackTrace();
+            }
+        };
+
+        channel.write(buffer, 0, "", handler);
+
+        try {
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         Store.getInstance().addStoredChunk(file_id, chunk_number, replicationDegree, chunk_body.length);
