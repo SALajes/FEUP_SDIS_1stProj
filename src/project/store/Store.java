@@ -69,6 +69,12 @@ public class Store {
 
     // ---------------------------------------------- RECLAIM -----------------------------------
 
+    /**
+     * used in the reclaim sub protocol
+     * It changes the storage_capacity variable and deletes the need files for the storage capacity be greater or
+     * equal that the space with storage
+     * @param new_capacity the new_storage_maximum_capacity
+     */
     public void setStorageCapacity(Integer new_capacity) {
         this.storage_capacity = new_capacity;
 
@@ -89,8 +95,8 @@ public class Store {
             ArrayList<Integer> chunks_nos = new ArrayList<>(stored_chunks.get(file_id).second);
 
             for(Integer chunk_number : chunks_nos) {
-
                 FileManager.removeChunk(file_id, chunk_number);
+                //checks if can stop deleting files
                 if(new_capacity >= occupied_storage){
                     return;
                 }
@@ -98,6 +104,10 @@ public class Store {
         }
     }
 
+    /**
+     * reclaim starts be deleting over replicated files.
+     * If need, reclaims deletes replicated enough and under replicated
+     */
     private void deleteOverReplicated() {
         Set<String> keys = stored_chunks.keySet();
 
@@ -185,6 +195,12 @@ public class Store {
         }
     }
 
+    /**
+     * checks if the chunk exists in the stored_chunks
+     * @param file_id encoded
+     * @param chunk_no number of the chunk
+     * @return true if exists and false otherwise
+     */
     public boolean checkStoredChunk(String file_id, int chunk_no){
         if(stored_chunks.containsKey(file_id)) {
             return stored_chunks.get(file_id).second.contains(chunk_no);
@@ -221,6 +237,13 @@ public class Store {
 
     //-------------------- Stored Chunks Occurrences ------------------
 
+    /**
+     * add an entry to the stored_chunks_occurrences, with the own Peer-id because
+     * he is one of the peers that has a stored chunk of the chunk with number and file_id passed as argument
+     * @param file_id encoded
+     * @param chunk_number number of the chunk
+     * @param replicationDegree wanted replication degree
+     */
     private void addStoredChunksOccurrences(String file_id, int chunk_number, Integer replicationDegree) {
         ArrayList<Integer> occurrences = new ArrayList<>();
         occurrences.add(Peer.id);

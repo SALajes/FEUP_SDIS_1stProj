@@ -6,9 +6,17 @@ import project.peer.Peer;
 import project.protocols.ReclaimProtocol;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class FileManager {
 
@@ -97,20 +105,43 @@ public class FileManager {
      * @param chunk_number number of the chunk
      * @return true if success and false otherwise
      */
-    public static synchronized boolean writeChunkToRestoredFile(String file_name, byte[] chunk_data, int chunk_number) {
+    public static boolean writeChunkToRestoredFile(String file_name, byte[] chunk_data, int chunk_number) {
 
         String file_path = Store.getInstance().getRestoredDirectoryPath() + "/" + file_name;
 
-        //Random access file offers a seek feature that can go directly to a particular position
-        try (RandomAccessFile file = new RandomAccessFile(file_path, "rw")) {
-            file.seek(chunk_number * Macros.CHUNK_MAX_SIZE);
-            file.write(chunk_data);
-            return true;
+        ByteBuffer buffer = ByteBuffer.wrap(chunk_data);
+        Path path = Paths.get(file_path);
+        AsynchronousFileChannel channel ;
+
+        try {
+            channel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE);
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Couldn't append chunk number " + chunk_number + " to file " + file_name + ".");
+            System.err.println("Couldn't open restore file");
             return false;
         }
+
+        CompletionHandler handler = new CompletionHandler() {
+            @Override
+            public void completed(Object result, Object attachment) { }
+            @Override
+            public void failed(Throwable exc, Object attachment) {
+                System.out.println("Restore failed with exception:");
+                exc.printStackTrace();
+            }
+        };
+
+        channel.write(buffer, chunk_number * Macros.CHUNK_MAX_SIZE, "", handler);
+
+        try {
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Couldn't close restore file");
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -178,17 +209,50 @@ public class FileManager {
             final String chunk_path = Store.getInstance().getStoreDirectoryPath() + "/" + file_id + "/" + chunk_no;
             File file = new File(chunk_path);
             int chunk_size = (int) file.length();
-            byte[] chunk_data = new byte[chunk_size];
-            try (FileInputStream fileInputStream = new FileInputStream(chunk_path)) {
-                if(fileInputStream.read(chunk_data) < 0)
-                    return null;
-                chunk = new Chunk(chunk_no, chunk_data, chunk_size);
-                return chunk;
+
+            Path path = Paths.get(chunk_path);
+
+            AsynchronousFileChannel channel = null;
+            try {
+                channel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
             } catch (IOException e) {
-                System.err.println("Couldn't get chunk "+ chunk_no + " of file " + file_id);
                 e.printStackTrace();
-                return null;
             }
+
+            ByteBuffer buffer = ByteBuffer.allocate(chunk_size);
+
+            Future result = channel.read(buffer, 0); // position = 0
+
+            while (! result.isDone());
+
+            try {
+               result.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+            buffer.flip();
+
+            int i = 0;
+            byte[] chunk_data = new byte[chunk_size];
+
+            while (buffer.hasRemaining()) {
+                chunk_data[i] = buffer.get();
+                i++;
+            }
+
+            buffer.clear();
+
+            try {
+                channel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            chunk = new Chunk(chunk_no, chunk_data, chunk_size);
+            return chunk;
 
         }
 
@@ -270,16 +334,38 @@ public class FileManager {
         // Idempotent Method
         FileManager.createDirectory(chunk_directory);
         String chunk_path = chunk_directory + chunk_number;
+        FileManager.createEmptyFile(chunk_path);
+
+        ByteBuffer buffer = ByteBuffer.wrap(chunk_body);
+
+        Path path = Paths.get(chunk_path);
+
+        AsynchronousFileChannel channel = null;
 
         try {
-            //FileOutputStream.write() method automatically create a new file and write content to it.
-            FileOutputStream file = new FileOutputStream(chunk_path);
-            file.write(chunk_body);
-            file.close();
-
+            channel = AsynchronousFileChannel.open(path, StandardOpenOption.WRITE);
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+        }
+
+        CompletionHandler handler = new CompletionHandler() {
+            @Override
+            public void completed(Object result, Object attachment) {
+
+            }
+            @Override
+            public void failed(Throwable exc, Object attachment) {
+                System.out.println(attachment + " failed with exception:");
+                exc.printStackTrace();
+            }
+        };
+
+        channel.write(buffer, 0, "", handler);
+
+        try {
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         Store.getInstance().addStoredChunk(file_id, chunk_number, replicationDegree, chunk_body.length);
