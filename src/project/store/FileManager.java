@@ -15,6 +15,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class FileManager {
 
@@ -103,7 +105,7 @@ public class FileManager {
      * @param chunk_number number of the chunk
      * @return true if success and false otherwise
      */
-    public static synchronized boolean writeChunkToRestoredFile(String file_name, byte[] chunk_data, int chunk_number) {
+    public static boolean writeChunkToRestoredFile(String file_name, byte[] chunk_data, int chunk_number) {
 
         String file_path = Store.getInstance().getRestoredDirectoryPath() + "/" + file_name;
 
@@ -121,9 +123,7 @@ public class FileManager {
 
         CompletionHandler handler = new CompletionHandler() {
             @Override
-            public void completed(Object result, Object attachment) {
-                System.out.println("Restore of chunk " + chunk_number + " completed and " + result + " bytes are written.");
-            }
+            public void completed(Object result, Object attachment) { }
             @Override
             public void failed(Throwable exc, Object attachment) {
                 System.out.println("Restore failed with exception:");
@@ -132,6 +132,7 @@ public class FileManager {
         };
 
         channel.write(buffer, chunk_number * Macros.CHUNK_MAX_SIZE, "", handler);
+
         try {
             channel.close();
         } catch (IOException e) {
@@ -208,17 +209,50 @@ public class FileManager {
             final String chunk_path = Store.getInstance().getStoreDirectoryPath() + "/" + file_id + "/" + chunk_no;
             File file = new File(chunk_path);
             int chunk_size = (int) file.length();
-            byte[] chunk_data = new byte[chunk_size];
-            try (FileInputStream fileInputStream = new FileInputStream(chunk_path)) {
-                if(fileInputStream.read(chunk_data) < 0)
-                    return null;
-                chunk = new Chunk(chunk_no, chunk_data, chunk_size);
-                return chunk;
+
+            Path path = Paths.get(chunk_path);
+
+            AsynchronousFileChannel channel = null;
+            try {
+                channel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
             } catch (IOException e) {
-                System.err.println("Couldn't get chunk "+ chunk_no + " of file " + file_id);
                 e.printStackTrace();
-                return null;
             }
+
+            ByteBuffer buffer = ByteBuffer.allocate(chunk_size);
+
+            Future result = channel.read(buffer, 0); // position = 0
+
+            while (! result.isDone());
+
+            try {
+               result.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+            buffer.flip();
+
+            int i = 0;
+            byte[] chunk_data = new byte[chunk_size];
+
+            while (buffer.hasRemaining()) {
+                chunk_data[i] = buffer.get();
+                i++;
+            }
+
+            buffer.clear();
+
+            try {
+                channel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            chunk = new Chunk(chunk_no, chunk_data, chunk_size);
+            return chunk;
 
         }
 
@@ -317,7 +351,7 @@ public class FileManager {
         CompletionHandler handler = new CompletionHandler() {
             @Override
             public void completed(Object result, Object attachment) {
-                System.out.println( "Store of the chunk completed and " + result + " bytes are written.");
+
             }
             @Override
             public void failed(Throwable exc, Object attachment) {
