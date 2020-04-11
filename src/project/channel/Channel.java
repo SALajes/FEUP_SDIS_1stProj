@@ -45,14 +45,14 @@ public abstract class Channel implements Runnable {
     @Override
     public void run(){
         try {
-            byte[] buffer = new byte[Macros.MAX_MESSAGE_SIZE];
-
             MulticastSocket socket = new MulticastSocket(this.port);
             socket.setTimeToLive(Macros.TTL);
 
             socket.joinGroup(this.InetAddress);
 
             while(true) {
+                byte[] buffer = new byte[Macros.MAX_MESSAGE_SIZE];
+
                 DatagramPacket packet = new DatagramPacket(buffer, Macros.MAX_MESSAGE_SIZE);
 
                 socket.receive(packet);
