@@ -75,7 +75,7 @@ public class Store {
      * equal that the space with storage
      * @param new_capacity the new_storage_maximum_capacity
      */
-    public void setStorageCapacity(Integer new_capacity) {
+    public void setStorageCapacity(long new_capacity) {
         this.storage_capacity = new_capacity;
 
         deleteOverReplicated();

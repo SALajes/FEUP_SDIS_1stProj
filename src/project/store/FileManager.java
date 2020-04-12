@@ -133,13 +133,13 @@ public class FileManager {
 
         channel.write(buffer, chunk_number * Macros.CHUNK_MAX_SIZE, "", handler);
 
-        try {
+        /*try {
             channel.close();
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Couldn't close restore file");
             return false;
-        }
+        }*/
 
         return true;
     }
@@ -245,11 +245,11 @@ public class FileManager {
 
             buffer.clear();
 
-            try {
+            /*try {
                 channel.close();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
+            }*/
 
             chunk = new Chunk(chunk_no, chunk_data, chunk_size);
             return chunk;
@@ -362,11 +362,11 @@ public class FileManager {
 
         channel.write(buffer, 0, "", handler);
 
-        try {
-            channel.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            channel.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         Store.getInstance().addStoredChunk(file_id, chunk_number, replicationDegree, chunk_body.length);
 

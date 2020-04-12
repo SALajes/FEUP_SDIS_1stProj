@@ -12,14 +12,16 @@ in the command line. This script compiles all java files in the src folder.
 
 
 ## Initiate peers
-All peers have the same prefix: "thisispeer".
+All peers have the same prefix: "thisispeer" and are followed by a suffix, that when generated automatically (by initiate_peers.sh) corresponds to an integer.
 
 It is possible to initiate several peers at the same time calling:
- > sh ./initiate_peers.sh <n_peers\>
+ > sh ./initiate_peers.sh <n_peers> [<start_sufix\>] [<-k\>]
 
 n_peers is the number of peers to initiate.
-This will initiate peers with sufix from 1 to n_peers.
-This script also finishes all previously created peers.
+start suffix and -k are optional.
+-k is a flag to finish all previously initiated peers.
+start_suffix defines an inferior limit for the interval of peer access point generated ([start_suffix , start_suffix + n_peers]); it is useful when X peers have been initiated and now we want to create Y more peers, we should start with a suffix of X+1
+If start_sufix is not given, it will initiate peers with a suffix from 1 to n_peers.
 
 To initiate one single peer:
  > sh ./initiate_single_peer.sh <sufix\>

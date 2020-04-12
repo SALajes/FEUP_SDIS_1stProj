@@ -194,18 +194,16 @@ public class Peer implements RemoteInterface {
             System.exit(-1);
         }
 
-        Store.getInstance().setStorageCapacity(max_disk_space);
+        long max_disk_space_aux = 1000*(long)max_disk_space;
+        Store.getInstance().setStorageCapacity(max_disk_space_aux);
 
         return 0;
     }
 
-    /**
-     * This operation allows to observe the service state.
-     * @return
-     */
     @Override
     public String state() {
-        String state = retrieveBackupState() + "\n";
+        String state = "|------- THISISPEER " + Peer.id + " ------|\n";
+        state += retrieveBackupState() + "\n";
 
         state += retrieveStoredChunksState() + "\n";
 
