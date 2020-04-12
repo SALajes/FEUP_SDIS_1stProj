@@ -202,7 +202,7 @@ public class Peer implements RemoteInterface {
 
     @Override
     public String state() {
-        String state = "|------- THISISPEER " + Peer.id + " ------|\n";
+        String state = "|------- THISISPEER " + Peer.id + " -------|\n";
         state += retrieveBackupState() + "\n";
 
         state += retrieveStoredChunksState() + "\n";
