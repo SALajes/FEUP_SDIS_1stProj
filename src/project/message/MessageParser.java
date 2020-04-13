@@ -110,8 +110,8 @@ public class MessageParser {
                         message_header.get(3).trim() //file_id
                         //message without a body
                 );
-            case RECEIVEDELETE:
-                return new ReceiveDeleteMessage(
+            case DELETERECEIVED:
+                return new DeleteReceivedMessage(
                         Double.parseDouble(message_header.get(0).trim()), //version
                         Integer.parseInt(message_header.get(2).trim()), //sender_id
                         message_header.get(3).trim() //file_id

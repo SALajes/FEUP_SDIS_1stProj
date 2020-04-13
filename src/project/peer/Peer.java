@@ -168,16 +168,8 @@ public class Peer implements RemoteInterface {
             throw new InvalidFileException("File name not found");
         }
 
-        /*
-        The coded below deleted any restore file that could exists. However the protocol doesn't says to do it.
-
-        System.out.println("Deleting file " + file_id + " and its folder");
-        FileManager.deleteFileFolder(Store.getInstance().getRestoredDirectoryPath() + file_name);
-
-         */
-
-        //sends message REMOVE to all peers
-        DeleteProtocol.sendDelete(Peer.version, Peer.id, file_id);
+        //sends message DELETE to all peers
+        DeleteProtocol.sendDelete(file_id);
 
         if(Peer.version == Macros.VERSION) {
 

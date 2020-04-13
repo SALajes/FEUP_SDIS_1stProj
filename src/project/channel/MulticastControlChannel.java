@@ -1,6 +1,5 @@
 package project.channel;
 
-import project.Macros;
 import project.message.*;
 import project.peer.Peer;
 import project.protocols.*;
@@ -34,8 +33,8 @@ public class MulticastControlChannel extends Channel {
                 case DELETE:
                     DeleteProtocol.receiveDelete((DeleteMessage) message);
                     break;
-                case RECEIVEDELETE:
-                    DeleteProtocol.receiveReceiveDelete((ReceiveDeleteMessage) message);
+                case DELETERECEIVED:
+                    DeleteProtocol.receiveDeleteReceived((DeleteReceivedMessage) message);
                     break;
                 case REMOVED:
                     ReclaimProtocol.receiveRemoved((RemovedMessage) message);

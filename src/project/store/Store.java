@@ -24,7 +24,7 @@ public class Store {
     private ConcurrentHashMap<String, Boolean>  getchunk_reply = new ConcurrentHashMap<>();
 
     //used for delete_enhancement, key file_id and value list of peers
-    private Hashtable<String, ArrayList<Integer>> not_deleted  = new Hashtable<>();
+    private ConcurrentHashMap<String, ArrayList<Integer>> not_deleted = new ConcurrentHashMap<>();
 
     private static String peer_directory_path;
     private static String files_directory_path;
@@ -363,7 +363,9 @@ public class Store {
         this.backup_chunks_occurrences.remove(chunk_id);
     }
 
-    public boolean check_if_all_deleted(String file_id){
+    //---------------------- DELETE ENHANCEMENT ------------------------
+
+    public boolean checkIfAllDeleted(String file_id){
         String file_name = FilesListing.getInstance().getFileName(file_id);
         Integer number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
 
@@ -378,7 +380,7 @@ public class Store {
         return true;
     }
 
-    public void change_from_backup_to_delete(String file_id) {
+    public void changeFromBackupToDelete(String file_id) {
         String file_name = FilesListing.getInstance().getFileName(file_id);
         Integer number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
 
