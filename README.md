@@ -1,5 +1,5 @@
 # sdis1920-t1g07
-Scripts were developed in order to run the program more esily, these can be found in "demo" folder of this project's root.
+Scripts were developed in order to run the program more easily, these can be found in "demo" folder of this project's root.
 
 To run the scripts, please go to the demo folder.
 
@@ -18,13 +18,13 @@ It is possible to initiate several peers at the same time calling:
  > sh ./initiate_peers.sh <n_peers> <version> [<start_suffix\>] [-k]
 
 n_peers is the number of peers to initiate with the designated version (1.0 or 2.0).
-
+<br>
 start suffix and -k are optional.
-
+<br>
 -k is a flag to finish all previously initiated peers.
-
-start_suffix defines an inferior limit for the interval of peer access point generated ([start_suffix , start_suffix + n_peers]); it is useful when X peers have been initiated and now we want to create Y more peers, we should start with a suffix of X+1
-
+<br>
+start_suffix defines an inferior limit for the interval of peer access point generated ([start_suffix , start_suffix + n_peers]); it is useful when X peers have been initiated and now we want to create Y more peers, we should start with a suffix of X+1.
+<br>
 If start_suffix is not given, it will initiate peers with a suffix from 1 to n_peers.
 
 <br>
@@ -35,7 +35,6 @@ To initiate one single peer:
 This will initiate a single peer with the designated version (1.0 or 2.0) and the specified suffix.
 
 <br> 
-
 **Notes**: 
 - There are only two versions: 1.0 (basic) and 2.0 (enhanced).
 - Each peer initiated opens and executes in a new terminal window.
@@ -75,7 +74,15 @@ For STATE:
 ##Directories
 
 Each peer has its own directory, being [peer id]_directory. 
-Inside this directory there are three folders, one for the own files, named “files”, other of the restore files, name “restored” .
+Inside this directory there are three folders, one for the own files, named “files”, other of the restored files, name “restored” .
 There is a third folder for the store chunks, which are the other peer chunks, named “stored”.  <br>
 When a chunk is store, a folder with is file id is created, and the chunks add are inside that folder with a name that corresponds to is chunk number.
 
+<br>
+
+<br>
+
+##Authors
+Maria Helena Ferreira -- *up201704508*
+<br>
+Sofia de Araújo Lajes -- *up201704066*

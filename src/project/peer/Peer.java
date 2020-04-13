@@ -206,6 +206,9 @@ public class Peer implements RemoteInterface {
     @Override
     public String state() {
         String state = "\n------- THISISPEER " + Peer.id + " -------\n";
+        state += "------- ( " + Peer.service_access_point + " ) -------\n";
+        state += "-----------------------------------------------------\n\n";
+
         state += retrieveBackupState() + "\n";
 
         state += retrieveStoredChunksState() + "\n";
