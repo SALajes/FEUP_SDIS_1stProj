@@ -1,12 +1,10 @@
 package project.channel;
 
-import project.Macros;
 import project.message.*;
 import project.peer.Peer;
 import project.protocols.*;
 
 import java.net.DatagramPacket;
-import java.time.Period;
 
 public class MulticastControlChannel extends Channel {
 
@@ -21,19 +19,19 @@ public class MulticastControlChannel extends Channel {
             byte [] raw_message = packet.getData();
             BaseMessage message = MessageParser.parseMessage(raw_message, raw_message.length);
 
-            if(message.getSender_id() == Peer.id){
+            if(message.getSenderId() == Peer.id){
                 return;
             }
 
-            switch (message.getMessage_type()) {
+            switch (message.getMessageType()) {
                 case STORED:
                     BackupProtocol.receiveStored((StoredMessage) message);
                     break;
                 case GETCHUNK:
-                   if(message.getVersion() == Macros.VERSION_ENHANCEMENT ) {
-                        RestoreProtocol.receiveGetchunkEnhacement((GetChunkEnhancementMessage) message);
-                   } else RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
+                   RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
                    break;
+                case GETCHUNKENHANCED:
+                    RestoreProtocol.receiveGetchunkEnhacement((GetChunkEnhancementMessage) message);
                 case DELETE:
                     DeleteProtocol.receiveDelete((DeleteMessage) message);
                     break;
@@ -44,7 +42,7 @@ public class MulticastControlChannel extends Channel {
                     ReclaimProtocol.receiveRemoved((RemovedMessage) message);
                     break;
                 default:
-                    System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());
+                    System.out.println("Invalid message type for Control Channel: " + message.getMessageType());
                     break;
             }
         } catch (InvalidMessageException e) {

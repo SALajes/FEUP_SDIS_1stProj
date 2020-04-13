@@ -42,7 +42,7 @@ public class DeleteProtocol {
 
         if(Peer.version == Macros.VERSION && deleteMessage.getVersion() == Macros.VERSION ) {
 
-            String file_id = deleteMessage.getFile_id();
+            String file_id = deleteMessage.getFileId();
 
             //delete all files and records in stored
             FileManager.deleteFileFolder(Store.getInstance().getStoreDirectoryPath() + file_id);
@@ -51,7 +51,7 @@ public class DeleteProtocol {
         } else if(Peer.version == Macros.VERSION_ENHANCEMENT && deleteMessage.getVersion() == Macros.VERSION_ENHANCEMENT) {
 
             System.out.println("Receive Delete");
-            String file_id = deleteMessage.getFile_id();
+            String file_id = deleteMessage.getFileId();
 
             //delete all files and records in stored
             FileManager.deleteFileFolder(Store.getInstance().getStoreDirectoryPath() + file_id);
@@ -118,8 +118,8 @@ public class DeleteProtocol {
 
     public static void receiveReceiveDelete(ReceiveDeleteMessage message) {
 
-        Integer peer_id = message.getSender_id();
-        String file_id = message.getFile_id();
+        Integer peer_id = message.getSenderId();
+        String file_id = message.getFileId();
 
         String file_name = FilesListing.getInstance().getFileName(file_id);
         Integer number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
@@ -131,7 +131,7 @@ public class DeleteProtocol {
 
         }
 
-        System.out.println("Confirm deletion all chunks of file " + file_id + " on peer " + message.getSender_id());
+        System.out.println("Confirm deletion all chunks of file " + file_id + " on peer " + message.getSenderId());
     }
 }
 

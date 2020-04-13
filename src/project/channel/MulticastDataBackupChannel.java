@@ -20,14 +20,14 @@ public class MulticastDataBackupChannel extends Channel {
 
             BaseMessage message = MessageParser.parseMessage(raw_message, packet.getLength());
 
-            if(message.getSender_id() == Peer.id){
+            if(message.getSenderId() == Peer.id){
                 return;
             }
 
-            if(message.getMessage_type() == Message_Type.PUTCHUNK){
+            if(message.getMessageType() == Message_Type.PUTCHUNK){
                 BackupProtocol.receivePutchunk((PutChunkMessage) message);
             }
-            else System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());
+            else System.out.println("Invalid message type for Control Channel: " + message.getMessageType());
 
         } catch (InvalidMessageException e) {
             e.getMessage();

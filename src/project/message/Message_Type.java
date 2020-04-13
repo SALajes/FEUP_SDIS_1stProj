@@ -8,5 +8,5 @@ public enum Message_Type {
     DELETE,
     REMOVED,
     RECEIVEDELETE,
-    NO_TYPE
+    GETCHUNKENHANCED;
 }

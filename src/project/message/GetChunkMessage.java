@@ -9,7 +9,7 @@ public class GetChunkMessage extends BaseMessage {
         this.chunk_no = chunk_no;
     }
 
-    public Integer get_chunk_no() {
+    public Integer getChunkNo() {
         return chunk_no;
     }
 

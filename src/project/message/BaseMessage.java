@@ -45,15 +45,15 @@ public abstract class BaseMessage {
         return version;
     }
 
-    public Message_Type getMessage_type() {
+    public Message_Type getMessageType() {
         return message_type;
     }
 
-    public int getSender_id() {
+    public int getSenderId() {
         return sender_id;
     }
 
-    public String getFile_id() {
+    public String getFileId() {
         return file_id;
     }
 

@@ -19,7 +19,7 @@ public class GetChunkEnhancementMessage extends BaseMessage {
     }
 
     public GetChunkEnhancementMessage(Double version, int sender_id, String file_id, int chunk_no, int port, String address) {
-        super(version, Message_Type.GETCHUNK, sender_id, file_id);
+        super(version, Message_Type.GETCHUNKENHANCED, sender_id, file_id);
 
         this.chunk_no = chunk_no;
         this.port = port;
@@ -27,15 +27,15 @@ public class GetChunkEnhancementMessage extends BaseMessage {
 
     }
 
-    public Integer get_chunk_no() {
+    public Integer getChunkNo() {
         return chunk_no;
     }
 
-    public Integer get_port() {
+    public Integer getPort() {
         return port;
     }
 
-    public String get_address() {
+    public String getAddress() {
         return address;
     }
 
