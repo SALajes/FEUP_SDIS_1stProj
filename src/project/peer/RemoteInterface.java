@@ -10,6 +10,9 @@ public interface RemoteInterface extends Remote{
     int backup(String file_path, int replication_degree) throws RemoteException, InvalidMessageException, InvalidFileException;
     int restore(String file_path) throws RemoteException, InvalidFileException;
     int delete(String file_path) throws RemoteException, InvalidFileException;
+    int delete_enhancement(String opnd_1) throws RemoteException, InvalidFileException;
     int reclaim(int  max_disk_space) throws RemoteException;
     String state() throws RemoteException;
+
+
 }

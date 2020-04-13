@@ -29,7 +29,7 @@ public class BackupProtocol {
     }
 
     private static void processPutchunk(byte[] message, int replication_degree, String chunk_id, int tries) {
-        if(tries > 5){
+        if(tries >= 5){
             System.out.println("Putchunk failed desired replication degree: " + chunk_id);
             return;
         }

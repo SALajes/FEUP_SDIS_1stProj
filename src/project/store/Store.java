@@ -308,6 +308,7 @@ public class Store {
     //---------------------------- BACKUP CHUNKS ----------------------------------
 
     public void newBackupChunk(String chunk_id, int replication_degree) {
+
         if(this.backup_chunks_occurrences.containsKey(chunk_id)){
             Pair<Integer, ArrayList<Integer>> pair = this.backup_chunks_occurrences.get(chunk_id);
 
@@ -319,6 +320,7 @@ public class Store {
     }
 
     public void addBackupChunksOccurrences(String chunk_id, int peer_id) {
+
         if(this.backup_chunks_occurrences.containsKey(chunk_id)){
             Pair<Integer, ArrayList<Integer>> pair = this.backup_chunks_occurrences.get(chunk_id);
 
@@ -328,6 +330,7 @@ public class Store {
 
             pair.second.add(peer_id);
             this.backup_chunks_occurrences.replace(chunk_id, pair);
+
         }
     }
 
@@ -356,6 +359,22 @@ public class Store {
     public void removeBackupChunksOccurrences(String chunk_id) {
         this.backup_chunks_occurrences.remove(chunk_id);
     }
+
+    public boolean check_if_all_deleted(String file_id){
+        String file_name = FilesListing.getInstance().getFileName(file_id);
+        Integer number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
+
+        for(int i = 0; i < number_of_chunks; i++) {
+            String chunk_id = file_id + "_" + i;
+            Pair<Integer,ArrayList<Integer>> value = this.backup_chunks_occurrences.get(chunk_id);
+
+            if(value.second.size() > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     // --------------------------- GETCHUNK -----------------------------------
 

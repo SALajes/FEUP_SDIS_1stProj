@@ -1,11 +1,9 @@
 package project.channel;
 
+import project.Macros;
 import project.message.*;
 import project.peer.Peer;
-import project.protocols.BackupProtocol;
-import project.protocols.DeleteProtocol;
-import project.protocols.ReclaimProtocol;
-import project.protocols.RestoreProtocol;
+import project.protocols.*;
 
 import java.net.DatagramPacket;
 
@@ -17,6 +15,7 @@ public class MulticastControlChannel extends Channel {
 
     @Override
     protected void readableMessage(DatagramPacket packet) {
+
         try {
             byte [] raw_message = packet.getData();
             BaseMessage message = MessageParser.parseMessage(raw_message, raw_message.length);
@@ -33,7 +32,15 @@ public class MulticastControlChannel extends Channel {
                     RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
                     break;
                 case DELETE:
-                    DeleteProtocol.receiveDelete((DeleteMessage) message);
+                    if(message.getVersion() == Macros.VERSION){
+                        DeleteProtocol.receiveDelete((DeleteMessage) message);
+                    }
+                    else{
+                        DeleteEnhancementProtocol.receiveDelete((DeleteMessage) message);
+                    }
+                    break;
+                case RECEIVEDELETE:
+                    DeleteEnhancementProtocol.receiveReceiveDelete((ReceiveDeleteMessage) message);
                     break;
                 case REMOVED:
                     ReclaimProtocol.receiveRemoved((RemovedMessage) message);
@@ -43,7 +50,8 @@ public class MulticastControlChannel extends Channel {
                     break;
             }
         } catch (InvalidMessageException e) {
-            e.getMessage();
+            e.printStackTrace();
+
         }
     }
 }

@@ -7,5 +7,6 @@ public enum Message_Type {
     CHUNK,
     DELETE,
     REMOVED,
-    NO_TYPE;
+    RECEIVEDELETE,
+    NO_TYPE
 }

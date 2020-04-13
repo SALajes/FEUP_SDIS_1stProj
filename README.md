@@ -59,3 +59,11 @@ For RECLAIM:
 
 For STATE:
  > sh ./run_app.sh <peer sufix\> STATE
+
+##Directories
+
+Each peer has its own directory, being [peer id]_directory. 
+Inside this directory there are three folders, one for the own files, named “files”, other of the restore files, name “restored” .
+There is a third folder for the store chunks, which are the other peer chunks, named “stored”.  <br>
+When a chunk is store, a folder with is file id is created, and the chunks add are inside that folder with a name that corresponds to is chunk number.
+

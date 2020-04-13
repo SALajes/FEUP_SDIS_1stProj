@@ -32,7 +32,7 @@ public class FilesListing {
         return files.get(file_name).first;
     }
 
-    public static int getNumberOfChunks(String file_name) {
+    public int getNumberOfChunks(String file_name) {
         return files.get(file_name).second;
     }
 
@@ -59,7 +59,17 @@ public class FilesListing {
         Pair<String, Integer> pair = files.put(file_name, new Pair<>(file_id, number_of_chunks));
 
         if (pair != null) {
-            System.out.println("This file_name already exists, updating the content.");
+            System.out.println("This file_name already exists, the content was probably updated.");
+
+            /*
+            The code below deletes the older file, how ever, in moodle question "Should we detect when the file gets modified?"
+            Says "Does this actually mean that we need to know when the file gets modified and then delete it?!"
+            No. This was just to motivate the existence of the DELETE protocol.
+            Peers should not take any action as a result of any event in the file system. All actions by the peers are a result of the execution of the
+            instances of the protocols in which they participate, or of requests by the TestApp.
+             */
+
+            /*
 
             System.out.println("Deleting " + pair.second + " chunks from the out of date file");
 
@@ -71,6 +81,8 @@ public class FilesListing {
 
             //old file is ours so unregister chunks of the file
             Store.getInstance().removeStoredChunks(pair.first);
+
+            */
 
         }
         set_files_disk_info();

@@ -19,12 +19,15 @@ import project.channel.*;
 import project.chunk.ChunkFactory;
 import project.message.InvalidMessageException;
 import project.protocols.BackupProtocol;
+import project.protocols.DeleteEnhancementProtocol;
 import project.protocols.DeleteProtocol;
 import project.protocols.RestoreProtocol;
 import project.store.FileManager;
 import project.store.FilesListing;
 import project.store.Pair;
 import project.store.Store;
+
+import javax.crypto.Mac;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
@@ -67,7 +70,7 @@ public class Peer implements RemoteInterface {
         try{
             version = Double.parseDouble(args[0]);
 
-            if( version != Macros.VERSION) {
+            if( version != Macros.VERSION && version != Macros.VERSION_ENHANCEMENT) {
                 System.out.println("Not default version");
             }
 
@@ -128,11 +131,11 @@ public class Peer implements RemoteInterface {
      * The client shall specify the file to restore by its pathname.
      */
     @Override
-    public int restore(String file_path) throws InvalidFileException {
+    public int restore(String file_path) throws RemoteException, InvalidFileException {
 
         final String file_name = new File(file_path).getName();
 
-        String file_id = "";
+        String file_id;
         try{
             file_id = FilesListing.getInstance().getFileId(file_name);
         }
@@ -160,7 +163,7 @@ public class Peer implements RemoteInterface {
         final String file_name = new File(file_path).getName();
 
         //gets the file_id from the entry with key file_name form allFiles
-        String file_id = "";
+        String file_id;
         try{
             file_id = FilesListing.getInstance().getFileId(file_name);
         }
@@ -168,8 +171,13 @@ public class Peer implements RemoteInterface {
             throw new InvalidFileException("File name not found");
         }
 
+        /*
+        The coded below deleted any restore file that could exists. However the protocol doesn't says to do it.
+
         System.out.println("Deleting file " + file_id + " and its folder");
         FileManager.deleteFileFolder(Store.getInstance().getRestoredDirectoryPath() + file_name);
+
+         */
 
         // Remove entry with the file_name and correspond file_id from allFiles
         FilesListing.getInstance().delete_file_records(file_name, file_id);
@@ -181,6 +189,49 @@ public class Peer implements RemoteInterface {
         return 0;
     }
 
+    @Override
+    public int delete_enhancement(String file_path) throws RemoteException, InvalidFileException {
+        final String file_name = new File(file_path).getName();
+
+        //gets the file_id from the entry with key file_name form allFiles
+        String file_id;
+
+        try{
+            file_id = FilesListing.getInstance().getFileId(file_name);
+        }
+        catch(Exception e){
+            throw new InvalidFileException("File name not found");
+        }
+
+        //sends message REMOVE to all peers
+        DeleteEnhancementProtocol.sendDelete(Macros.VERSION_ENHANCEMENT, Peer.id, file_id);
+
+        System.out.println("Deletion of all chunks of a file from the backup service completed");
+
+        /*
+        The coded below deleted any restore file that could exists. However the protocol doesn't says to do it.
+
+        System.out.println("Deleting file " + file_id + " and its folder");
+        FileManager.deleteFileFolder(Store.getInstance().getRestoredDirectoryPath() + file_name);
+
+         */
+
+        if (Store.getInstance().check_if_all_deleted(file_id)) {
+            System.out.println("Delete all chunks of the file " + file_id);
+
+            Integer number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
+            for(int i = 0; i< number_of_chunks; i++ ) {
+                String chunk_id = file_id + "_" + i;
+                Store.getInstance().removeBackupChunksOccurrences( chunk_id);
+            }
+
+            // Remove entry with the file_name and correspond file_id from allFiles
+            FilesListing.getInstance().delete_file_records(file_name, file_id); //no reason to keep them
+        }
+
+        return 0;
+    }
+
     /**
      *
      * @param max_disk_space
@@ -188,7 +239,7 @@ public class Peer implements RemoteInterface {
      * It must be possible to specify a value of 0, thus reclaiming all disk space previously allocated to the service.
      */
     @Override
-    public int reclaim(int max_disk_space) {
+    public int reclaim(int max_disk_space) throws RemoteException {
         if(max_disk_space < 0) {
             System.err.println("Invalid maximum disk space");
             System.exit(-1);
