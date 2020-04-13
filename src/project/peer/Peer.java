@@ -222,16 +222,18 @@ public class Peer implements RemoteInterface {
             ConcurrentHashMap.Entry file = (ConcurrentHashMap.Entry)it.next();
             String file_name = (String) file.getKey();
             Pair<String, Integer> pair = (Pair<String, Integer>) file.getValue();// Pair( file_id , number_of_chunks )
-            int replication_degree = Store.getInstance().getBackupChunkReplicationDegree(pair.first + "_0");
+            if(pair.first!=null){
+                int replication_degree = Store.getInstance().getBackupChunkReplicationDegree(pair.first + "_0");
 
-            state = state + "> path: " + file_name + "\n"
-                    + "   id: " + pair.first + "\n"
-                    + "   replication degree: " + replication_degree + "\n"
-                    + "   > chunks:\n";
+                state = state + "> path: " + file_name + "\n"
+                        + "   id: " + pair.first + "\n"
+                        + "   replication degree: " + replication_degree + "\n"
+                        + "   > chunks:\n";
 
-            for(int i = 0; i < pair.second; i++){
-                state = state + "      id: " + i + "\n"
-                        + "         perceived replication degree: " + Store.getInstance().checkBackupChunksOccurrences(pair.first + "_" + i) + "\n";
+                for (int i = 0; i < pair.second; i++) {
+                    state = state + "      id: " + i + "\n"
+                            + "         perceived replication degree: " + Store.getInstance().checkBackupChunksOccurrences(pair.first + "_" + i) + "\n";
+                }
             }
         }
 

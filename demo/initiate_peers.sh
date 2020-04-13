@@ -5,10 +5,10 @@ then
 fi
 
 version=0
-if [ "$1" = "1.0" ]
+if [ "$2" = "1.0" ]
 then
   version=1.0
-elif [ "$1" = "2.0" ]
+elif [ "$2" = "2.0" ]
 then
   version=2.0
 else

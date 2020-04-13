@@ -115,7 +115,8 @@ public class BackupProtocol {
 
     public static void receiveCancelBackup(CancelBackupMessage cancel_backup){
         if(Peer.id == cancel_backup.getReceiver_id()){
-            Store.getInstance().removeStoredChunk(cancel_backup.getFile_id(), cancel_backup.getChunkNo());
+            //delete all files and records in stored
+            FileManager.removeChunk(cancel_backup.getFile_id(), cancel_backup.getChunkNo(), false);
         }
     }
 }

@@ -273,7 +273,10 @@ public class FileManager {
      * @param chunk_number number of the chunk
      * @return true if chunk was removed and false if it was
      */
-    public static boolean removeChunk(String file_id, int chunk_number) {
+    public static boolean removeChunk(String file_id, int chunk_number){
+        return removeChunk(file_id, chunk_number, true);
+    }
+    public static boolean removeChunk(String file_id, int chunk_number, boolean reclaim_protocol) {
 
         System.out.println("Deleting chunk "+ chunk_number + " with id:" + file_id);
 
@@ -296,11 +299,12 @@ public class FileManager {
         Store.getInstance().RemoveOccupiedStorage((int) chunk_file.length());
 
         if (chunk_file.delete()) {
-
             //removes from stored chunks Hashtable
             Store.getInstance().removeStoredChunk(file_id, chunk_number);
 
-            ReclaimProtocol.sendRemoved(Peer.version, Peer.id, file_id, chunk_number);
+            if(reclaim_protocol)
+                ReclaimProtocol.sendRemoved(Peer.version, Peer.id, file_id, chunk_number);
+
             return true;
         }
 
