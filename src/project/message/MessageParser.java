@@ -1,11 +1,13 @@
 package project.message;
 
 import project.Macros;
+import project.peer.Peer;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.copyOfRange;
+
 
 public class MessageParser {
 
@@ -88,8 +90,21 @@ public class MessageParser {
                         //message without a body
                 );
             case GETCHUNK:
+                Double version = Double.parseDouble(message_header.get(0).trim());
+
+                if(Peer.version == Macros.VERSION_ENHANCEMENT) {
+                    return new GetChunkEnhancementMessage(
+                            version, //version
+                            Integer.parseInt(message_header.get(2).trim()), //sender_id
+                            message_header.get(3).trim(), //file_id
+                            Integer.parseInt(message_header.get(4).trim()), //chunk_no
+                            Integer.parseInt(message_header.get(5).trim()),
+                            message_header.get(6).trim()
+                            //message without a body
+                    );
+                }
                 return new GetChunkMessage(
-                        Double.parseDouble(message_header.get(0).trim()), //version
+                        version, //version
                         Integer.parseInt(message_header.get(2).trim()), //sender_id
                         message_header.get(3).trim(), //file_id
                         Integer.parseInt(message_header.get(4).trim()) //chunk_no

@@ -6,6 +6,7 @@ import project.peer.Peer;
 import project.protocols.*;
 
 import java.net.DatagramPacket;
+import java.time.Period;
 
 public class MulticastControlChannel extends Channel {
 
@@ -29,8 +30,10 @@ public class MulticastControlChannel extends Channel {
                     BackupProtocol.receiveStored((StoredMessage) message);
                     break;
                 case GETCHUNK:
-                    RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
-                    break;
+                   if(message.getVersion() == Macros.VERSION_ENHANCEMENT ) {
+                        RestoreProtocol.receiveGetchunkEnhacement((GetChunkEnhancementMessage) message);
+                   } else RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
+                   break;
                 case DELETE:
                     DeleteProtocol.receiveDelete((DeleteMessage) message);
                     break;

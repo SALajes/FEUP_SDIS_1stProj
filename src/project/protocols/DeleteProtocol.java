@@ -14,7 +14,12 @@ public class DeleteProtocol {
 
     public static void sendDelete(double version, int sender_id, String file_id){
 
-        if(Peer.version == Macros.VERSION && version == Macros.VERSION) {
+        if(Peer.version == Macros.VERSION_ENHANCEMENT && version == Macros.VERSION_ENHANCEMENT ) {
+
+            DeleteMessage deleteMessage = new DeleteMessage( version, sender_id, file_id);
+            Runnable task = () -> process_delete_enhancement(deleteMessage.convertMessage(), file_id, 0);
+            Peer.scheduled_executor.execute(task);
+        } else  {
 
             DeleteMessage deleteMessage = new DeleteMessage( version, sender_id, file_id);
             Runnable task = () -> processDelete(deleteMessage);
@@ -25,11 +30,6 @@ public class DeleteProtocol {
             // file are deleted in spite of the loss of some messages."
             Peer.scheduled_executor.schedule(task, new Random().nextInt(201), TimeUnit.MILLISECONDS);
 
-        } else if(Peer.version == Macros.VERSION_ENHANCEMENT && version == Macros.VERSION_ENHANCEMENT ) {
-
-            DeleteMessage deleteMessage = new DeleteMessage( version, sender_id, file_id);
-            Runnable task = () -> process_delete_enhancement(deleteMessage.convertMessage(), file_id, 0);
-            Peer.scheduled_executor.execute(task);
         }
 
     }
@@ -67,7 +67,7 @@ public class DeleteProtocol {
     public static void process_delete_enhancement(byte[] message, String file_id, int tries){
 
         if(tries >= 5){
-            
+
             System.out.println("Couldn't delete all chunks of the file " + file_id);
             Store.getInstance().change_from_backup_to_delete(file_id);
             return;
