@@ -2,10 +2,7 @@ package project.channel;
 
 import project.message.*;
 import project.peer.Peer;
-import project.protocols.BackupProtocol;
-import project.protocols.DeleteProtocol;
-import project.protocols.ReclaimProtocol;
-import project.protocols.RestoreProtocol;
+import project.protocols.*;
 
 import java.net.DatagramPacket;
 
@@ -17,6 +14,7 @@ public class MulticastControlChannel extends Channel {
 
     @Override
     protected void readableMessage(DatagramPacket packet) {
+
         try {
             byte [] raw_message = packet.getData();
             BaseMessage message = MessageParser.parseMessage(raw_message, raw_message.length);
@@ -34,6 +32,9 @@ public class MulticastControlChannel extends Channel {
                     break;
                 case DELETE:
                     DeleteProtocol.receiveDelete((DeleteMessage) message);
+                    break;
+                case DELETERECEIVED:
+                    DeleteProtocol.receiveDeleteReceived((DeleteReceivedMessage) message);
                     break;
                 case REMOVED:
                     ReclaimProtocol.receiveRemoved((RemovedMessage) message);

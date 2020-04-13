@@ -12,4 +12,6 @@ public interface RemoteInterface extends Remote{
     int delete(String file_path) throws RemoteException, InvalidFileException;
     int reclaim(int  max_disk_space) throws RemoteException;
     String state() throws RemoteException;
+
+
 }

@@ -24,6 +24,9 @@ public class Store {
     private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> backup_chunks_occurrences = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Boolean>  getchunk_reply = new ConcurrentHashMap<>();
 
+    //used for delete_enhancement, key file_id and value list of peers
+    private ConcurrentHashMap<String, ArrayList<Integer>> not_deleted = new ConcurrentHashMap<>();
+
     private static String peer_directory_path;
     private static String files_directory_path;
     private static String files_info_directory_path;
@@ -332,6 +335,7 @@ public class Store {
     //---------------------------- BACKUP CHUNKS ----------------------------------
 
     public void newBackupChunk(String chunk_id, int replication_degree) {
+
         if(this.backup_chunks_occurrences.containsKey(chunk_id)){
             Pair<Integer, ArrayList<Integer>> pair = this.backup_chunks_occurrences.get(chunk_id);
 
@@ -355,6 +359,7 @@ public class Store {
 
             pair.second.add(peer_id);
             this.backup_chunks_occurrences.replace(chunk_id, pair);
+
         }
         return false;
     }
@@ -383,6 +388,52 @@ public class Store {
 
     public void removeBackupChunksOccurrences(String chunk_id) {
         this.backup_chunks_occurrences.remove(chunk_id);
+    }
+
+    //---------------------- DELETE ENHANCEMENT ------------------------
+
+    public boolean checkIfAllDeleted(String file_id){
+        String file_name = FilesListing.getInstance().getFileName(file_id);
+        Integer number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
+
+        for(int i = 0; i < number_of_chunks; i++) {
+            String chunk_id = file_id + "_" + i;
+            Pair<Integer,ArrayList<Integer>> value = this.backup_chunks_occurrences.get(chunk_id);
+
+            if(value.second.size() > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void changeFromBackupToDelete(String file_id) {
+        String file_name = FilesListing.getInstance().getFileName(file_id);
+        Integer number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
+
+        for(int i = 0; i < number_of_chunks; i++) {
+            String chunk_id = file_id + "_" + i;
+
+            Pair<Integer,ArrayList<Integer>> value =  this.backup_chunks_occurrences.get(chunk_id);
+
+            if(value.second.size() > 0) {
+
+                ArrayList<Integer> copy_by_reference = new ArrayList<>(value.second);
+                not_deleted.put(chunk_id, copy_by_reference);
+            }
+
+            removeBackupChunksOccurrences(chunk_id);
+
+        }
+
+        for(int i = 0; i < number_of_chunks; i++) {
+            String chunk_id = file_id + "_" + i;
+
+            ArrayList<Integer> peers_list =  not_deleted.get(chunk_id);
+            if(peers_list != null) {
+                System.out.println("File " + file_id + " still as " + peers_list.size() + " peers that didn't erase chunk " + i);
+            }
+        }
     }
 
     // --------------------------- GETCHUNK -----------------------------------

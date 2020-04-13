@@ -32,7 +32,7 @@ public class FilesListing {
         return files.get(file_name).first;
     }
 
-    public static int getNumberOfChunks(String file_name) {
+    public int getNumberOfChunks(String file_name) {
         return files.get(file_name).second;
     }
 
@@ -59,8 +59,17 @@ public class FilesListing {
         Pair<String, Integer> pair = files.put(file_name, new Pair<>(file_id, number_of_chunks));
 
         if (pair != null) {
-            System.out.println("This file_name already exists, updating the content.");
+            System.out.println("This file_name already exists, the content was probably updated.");
 
+            /*
+            The code below deletes the older file, how ever, in moodle question "Should we detect when the file gets modified?"
+            Says "Does this actually mean that we need to know when the file gets modified and then delete it?!"
+            No. This was just to motivate the existence of the DELETE protocol.
+            Peers should not take any action as a result of any event in the file system. All actions by the peers are a result of the execution of the
+            instances of the protocols in which they participate, or of requests by the TestApp.
+             */
+
+            /*
             System.out.println("Deleting " + pair.second + " chunks from the out of date file");
 
             //deletes file from network storage
@@ -71,6 +80,8 @@ public class FilesListing {
 
             //old file is ours so unregister chunks of the file
             Store.getInstance().removeStoredChunks(pair.first);
+
+            */
 
         }
         set_files_disk_info();
@@ -95,9 +106,9 @@ public class FilesListing {
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(Store.getInstance().getFilesInfoDirectoryPath()));
             objectOutputStream.writeObject(this);
+
         } catch (Exception e) {
             e.getStackTrace();
-            System.out.println("Couldn't get files info to the disk");
             return false;
         }
         return true;
@@ -112,7 +123,6 @@ public class FilesListing {
         //if file is empty there is nothing to have in the concurrentMap
         if (new File(Store.getInstance().getFilesInfoDirectoryPath()).length() == 0) {
             files = new ConcurrentHashMap<>();
-            System.out.println("There isn't previous file info.");
             return true;
         }
 

@@ -67,7 +67,7 @@ public class Peer implements RemoteInterface {
         try{
             version = Double.parseDouble(args[0]);
 
-            if( version != Macros.BASIC_VERSION && version != Macros.ENHANCED_VERSION ) {
+            if( version != Macros.BASIC_VERSION && version != Macros.ENHANCED_VERSION) {
                 System.out.println("Not a recognizable version");
                 System.exit(-1);
             }
@@ -128,11 +128,11 @@ public class Peer implements RemoteInterface {
      * The client shall specify the file to restore by its pathname.
      */
     @Override
-    public int restore(String file_path) throws InvalidFileException {
+    public int restore(String file_path) throws RemoteException, InvalidFileException {
 
         final String file_name = new File(file_path).getName();
 
-        String file_id = "";
+        String file_id;
         try{
             file_id = FilesListing.getInstance().getFileId(file_name);
         }
@@ -160,7 +160,7 @@ public class Peer implements RemoteInterface {
         final String file_name = new File(file_path).getName();
 
         //gets the file_id from the entry with key file_name form allFiles
-        String file_id = "";
+        String file_id;
         try{
             file_id = FilesListing.getInstance().getFileId(file_name);
         }
@@ -168,18 +168,21 @@ public class Peer implements RemoteInterface {
             throw new InvalidFileException("File name not found");
         }
 
-        System.out.println("Deleting file " + file_id + " and its folder");
-        FileManager.deleteFileFolder(Store.getInstance().getRestoredDirectoryPath() + file_name);
+        //sends message DELETE to all peers
+        DeleteProtocol.sendDelete(file_id);
 
-        // Remove entry with the file_name and correspond file_id from allFiles
-        FilesListing.getInstance().delete_file_records(file_name, file_id);
+        if(Peer.version == Macros.BASIC_VERSION) {
 
-        System.out.println("Deleting chunks in all peers");
-        //sends message REMOVE to all peers
-        DeleteProtocol.sendDelete(Peer.version, Peer.id, file_id);
+            // Remove entry with the file_name and correspond file_id from allFiles
+            FilesListing.getInstance().delete_file_records(file_name, file_id);
+
+            System.out.println("Deleting chunks in all peers");
+
+        }
 
         return 0;
     }
+
 
     /**
      *
@@ -188,7 +191,7 @@ public class Peer implements RemoteInterface {
      * It must be possible to specify a value of 0, thus reclaiming all disk space previously allocated to the service.
      */
     @Override
-    public int reclaim(int max_disk_space) {
+    public int reclaim(int max_disk_space) throws RemoteException {
         if(max_disk_space < 0) {
             System.err.println("Invalid maximum disk space");
             System.exit(-1);
@@ -202,7 +205,7 @@ public class Peer implements RemoteInterface {
 
     @Override
     public String state() {
-        String state = "------- THISISPEER " + Peer.id + " -------\n";
+        String state = "\n------- THISISPEER " + Peer.id + " -------\n";
         state += retrieveBackupState() + "\n";
 
         state += retrieveStoredChunksState() + "\n";

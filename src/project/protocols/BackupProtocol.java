@@ -1,5 +1,6 @@
 package project.protocols;
 
+import project.Macros;
 import project.chunk.Chunk;
 import project.message.CancelBackupMessage;
 import project.message.PutChunkMessage;
@@ -29,7 +30,7 @@ public class BackupProtocol {
     }
 
     private static void processPutchunk(byte[] message, int replication_degree, String chunk_id, int tries) {
-        if(tries > 5){
+        if(tries >= 5){
             System.out.println("Putchunk failed desired replication degree: " + chunk_id);
             return;
         }
@@ -56,7 +57,7 @@ public class BackupProtocol {
             return;
         }
 
-        if(Peer.version == 2.0 && putchunk.getVersion() == 2.0) {
+        if(Peer.version == Macros.ENHANCED_VERSION && putchunk.getVersion() == Macros.ENHANCED_VERSION) {
             Boolean x = FileManager.checkConditionsForSTORED(file_id, putchunk.getChunkNo(), putchunk.getChunk().length);
             if(x == null){
                 Runnable task = ()-> sendStoredEnhanced(putchunk);
@@ -93,12 +94,12 @@ public class BackupProtocol {
         int peer_id = stored.getSender_id();
 
         if(FilesListing.getInstance().getFileName(file_id) != null) {
-            if(Store.getInstance().addBackupChunksOccurrences(chunk_id, peer_id, Peer.version == 2.0 && stored.getVersion() == 2.0)) {
+            if(Store.getInstance().addBackupChunksOccurrences(chunk_id, peer_id, Peer.version == Macros.ENHANCED_VERSION && stored.getVersion() == Macros.ENHANCED_VERSION)) {
                 Runnable task = ()-> cancelBackup(stored);
                 Peer.scheduled_executor.execute(task);
             }
         } else {
-            if(Peer.version == 2.0 && stored.getVersion() == 2.0) {
+            if(Peer.version == Macros.ENHANCED_VERSION && stored.getVersion() == Macros.ENHANCED_VERSION) {
                 if(!Store.getInstance().hasReplicationDegree(chunk_id)){
                     //adds replication degree of the stored file
                     Store.getInstance().addReplicationDegree(chunk_id, peer_id);
