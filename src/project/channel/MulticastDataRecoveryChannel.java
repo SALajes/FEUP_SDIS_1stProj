@@ -23,11 +23,11 @@ public class MulticastDataRecoveryChannel extends Channel {
 
             if(message.getMessage_type() == Message_Type.CHUNK)
                 RestoreProtocol.receiveChunk((ChunkMessage) message);
-            else System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());
+            else System.out.println("Invalid message type for Data Recovery Channel: " + message.getMessage_type());
 
 
         } catch (InvalidMessageException e) {
-            e.getMessage();
+            System.out.println(e.getMessage());
         }
     }
 }

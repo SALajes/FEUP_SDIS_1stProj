@@ -316,17 +316,13 @@ public class FileManager {
      * @param replicationDegree wanted replication degree
      * @return true if successful or false otherwise
      */
-    public synchronized static boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, Integer replicationDegree) {
-
-        //check if the chunk already exists
-        if (Store.getInstance().checkStoredChunk(file_id, chunk_number)) {
-            return true;
-        }
-
-        //check if there is enough storage
-        if (!Store.getInstance().hasSpace(chunk_body.length)) {
-            System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " can't be store because there isn't space left.");
-            return false;
+    public synchronized static boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, Integer replicationDegree){
+        return storeChunk(file_id, chunk_number, chunk_body, replicationDegree, true);
+    }
+    public synchronized static boolean storeChunk(String file_id, int chunk_number, byte[] chunk_body, Integer replicationDegree, Boolean check_conditions) {
+        if(check_conditions){
+            Boolean x = checkConditionsForSTORED(file_id, chunk_number, chunk_body.length);
+            if (x != null) return x;
         }
 
         String chunk_directory =  Store.getInstance().getStoreDirectoryPath() + file_id + "/";
@@ -371,6 +367,20 @@ public class FileManager {
         Store.getInstance().addStoredChunk(file_id, chunk_number, replicationDegree, chunk_body.length);
 
         return true;
+    }
+
+    public static Boolean checkConditionsForSTORED(String file_id, int chunk_number, int chunk_body_length) {
+        //check if the chunk already exists
+        if (Store.getInstance().checkStoredChunk(file_id, chunk_number)) {
+            return true;
+        }
+
+        //check if there is enough storage
+        if (!Store.getInstance().hasSpace(chunk_body_length)) {
+            System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " can't be store because there isn't space left.");
+            return false;
+        }
+        return null;
     }
 
 }

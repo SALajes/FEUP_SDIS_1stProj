@@ -102,9 +102,9 @@ public class TestApp {
         } catch (NotBoundException e) {
             System.out.println("Bound Exception: Peer service access point (" + peer_ap + ") is not bound");
         } catch (InvalidMessageException e) {
-            e.getMessage();
+            System.out.println(e.getMessage());
         } catch (InvalidFileException e) {
-            e.getMessage();
+            System.out.println(e.getMessage());
         }
     }
 }

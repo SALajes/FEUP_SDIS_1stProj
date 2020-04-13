@@ -1,6 +1,7 @@
 package project.protocols;
 
 import project.chunk.Chunk;
+import project.message.CancelBackupMessage;
 import project.message.PutChunkMessage;
 import project.message.StoredMessage;
 import project.peer.Peer;
@@ -8,7 +9,6 @@ import project.store.FileManager;
 import project.store.FilesListing;
 import project.store.Store;
 
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -56,11 +56,20 @@ public class BackupProtocol {
             return;
         }
 
-        if(FileManager.storeChunk(file_id, putchunk.getChunkNo(), putchunk.getChunk(), putchunk.getReplicationDegree())){
-            StoredMessage stored = new StoredMessage(putchunk.getVersion(), Peer.id, putchunk.getFile_id(), putchunk.getChunkNo());
+        if(Peer.version == 2.0 && putchunk.getVersion() == 2.0) {
+            Boolean x = FileManager.checkConditionsForSTORED(file_id, putchunk.getChunkNo(), putchunk.getChunk().length);
+            if(x == null){
+                Runnable task = ()-> sendStoredEnhanced(putchunk);
+                Peer.scheduled_executor.schedule(task, new Random().nextInt(401), TimeUnit.MILLISECONDS);
+            }
+        }
+        else{
+            if(FileManager.storeChunk(file_id, putchunk.getChunkNo(), putchunk.getChunk(), putchunk.getReplicationDegree())){
+                StoredMessage stored = new StoredMessage(putchunk.getVersion(), Peer.id, putchunk.getFile_id(), putchunk.getChunkNo());
 
-            Runnable task = ()-> sendStored(stored.convertMessage());
-            Peer.scheduled_executor.schedule(task, new Random().nextInt(401), TimeUnit.MILLISECONDS);
+                Runnable task = ()-> sendStored(stored.convertMessage());
+                Peer.scheduled_executor.schedule(task, new Random().nextInt(401), TimeUnit.MILLISECONDS);
+            }
         }
     }
 
@@ -68,16 +77,45 @@ public class BackupProtocol {
         Peer.MC.sendMessage(message);
     }
 
-    public static void receiveStored(StoredMessage message){
-        String file_id = message.getFile_id();
-        String chunk_id = file_id + "_" + message.getChunkNo();
-        int peer_id = message.getSender_id();
+    private static void sendStoredEnhanced(PutChunkMessage putchunk) {
+        String chunk_id = putchunk.getFile_id() + "_" + putchunk.getChunkNo();
+        if(Store.getInstance().checkAuxStoredOccurrences(chunk_id) < putchunk.getReplicationDegree()){
+            FileManager.storeChunk(putchunk.getFile_id(), putchunk.getChunkNo(), putchunk.getChunk(), putchunk.getReplicationDegree(), false);
+            StoredMessage stored = new StoredMessage(putchunk.getVersion(), Peer.id, putchunk.getFile_id(), putchunk.getChunkNo());
+            sendStored(stored.convertMessage());
+        }
+        Store.getInstance().removeAuxStoredOccurrences(chunk_id);
+    }
+
+    public static void receiveStored(StoredMessage stored){
+        String file_id = stored.getFile_id();
+        String chunk_id = file_id + "_" + stored.getChunkNo();
+        int peer_id = stored.getSender_id();
 
         if(FilesListing.getInstance().getFileName(file_id) != null) {
-            Store.getInstance().addBackupChunksOccurrences(chunk_id, peer_id );
+            if(Store.getInstance().addBackupChunksOccurrences(chunk_id, peer_id, Peer.version == 2.0 && stored.getVersion() == 2.0)) {
+                Runnable task = ()-> cancelBackup(stored);
+                Peer.scheduled_executor.execute(task);
+            }
         } else {
-            //adds replication degree of the stored file
-            Store.getInstance().addReplicationDegree(file_id, message.getChunkNo(), peer_id);
+            if(Peer.version == 2.0 && stored.getVersion() == 2.0) {
+                if(!Store.getInstance().hasReplicationDegree(chunk_id)){
+                    //adds replication degree of the stored file
+                    Store.getInstance().addReplicationDegree(chunk_id, peer_id);
+                }
+            }
+            else Store.getInstance().addReplicationDegree(chunk_id, peer_id);
+        }
+    }
+
+    private static void cancelBackup(StoredMessage stored) {
+        CancelBackupMessage message = new CancelBackupMessage(Peer.version, Peer.id, stored.getFile_id(), stored.getChunkNo(), stored.getSender_id());
+        Peer.MDB.sendMessage(message.convertMessage());
+    }
+
+    public static void receiveCancelBackup(CancelBackupMessage cancel_backup){
+        if(Peer.id == cancel_backup.getReceiver_id()){
+            Store.getInstance().removeStoredChunk(cancel_backup.getFile_id(), cancel_backup.getChunkNo());
         }
     }
 }

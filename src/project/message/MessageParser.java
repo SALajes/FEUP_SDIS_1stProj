@@ -118,6 +118,14 @@ public class MessageParser {
                         Integer.parseInt(message_header.get(4).trim()) //chunk_no
                         //message without a body
                 );
+            case CANCELBACKUP:
+                return new CancelBackupMessage(
+                        Double.parseDouble(message_header.get(0).trim()), //version
+                        Integer.parseInt(message_header.get(2).trim()), //sender_id
+                        message_header.get(3).trim(), //file_id
+                        Integer.parseInt(message_header.get(4).trim()), //chunk_no
+                        Integer.parseInt(message_header.get(5).trim()) //receiver_id
+                );
             default:
                 throw new InvalidMessageException("Received invalid message type");
 

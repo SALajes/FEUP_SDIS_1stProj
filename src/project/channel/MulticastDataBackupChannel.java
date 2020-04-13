@@ -24,13 +24,18 @@ public class MulticastDataBackupChannel extends Channel {
                 return;
             }
 
-            if(message.getMessage_type() == Message_Type.PUTCHUNK){
-                BackupProtocol.receivePutchunk((PutChunkMessage) message);
+            switch(message.getMessage_type()){
+                case PUTCHUNK:
+                    BackupProtocol.receivePutchunk((PutChunkMessage) message);
+                    break;
+                case CANCELBACKUP:
+                    BackupProtocol.receiveCancelBackup((CancelBackupMessage) message);
+                    break;
+                default: System.out.println("Invalid message type for DataBackup Channel: " + message.getMessage_type());
             }
-            else System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());
 
         } catch (InvalidMessageException e) {
-            e.getMessage();
+            System.out.println(e.getMessage());
         }
     }
 }

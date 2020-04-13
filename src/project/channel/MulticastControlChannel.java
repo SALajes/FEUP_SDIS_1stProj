@@ -43,7 +43,7 @@ public class MulticastControlChannel extends Channel {
                     break;
             }
         } catch (InvalidMessageException e) {
-            e.getMessage();
+            System.out.println(e.getMessage());
         }
     }
 }

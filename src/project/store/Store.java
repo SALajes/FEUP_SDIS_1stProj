@@ -15,6 +15,7 @@ public class Store {
     //state of others chunks
     private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> stored_chunks = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Pair<Integer,ArrayList<Integer>>> stored_chunks_occurrences = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, ArrayList<Integer>> aux_stored_occurrences = new ConcurrentHashMap<>();
 
     //state of restored files - key file_id - value file_name
     private Hashtable<String, String> restored_files = new Hashtable<>();
@@ -208,7 +209,7 @@ public class Store {
         else return false;
     }
 
-    void removeStoredChunk(String file_id, Integer chunk_number) {
+    public void removeStoredChunk(String file_id, Integer chunk_number) {
 
         if(stored_chunks.containsKey(file_id)) {
             Pair<Integer, ArrayList<Integer>> pair = stored_chunks.get(file_id);
@@ -252,11 +253,11 @@ public class Store {
         System.out.println(Peer.id + " add stored chunk " + chunk_number + " of file " + file_id);
     }
 
-    public boolean addReplicationDegree(String file_id, Integer chunk_number, Integer peer_id) {
+    public boolean addReplicationDegree(String chunk_id, Integer peer_id) {
 
-        String chunk_id = file_id + "_" + chunk_number;
         //Peer doesn't have that chunk stored
         if(!stored_chunks_occurrences.containsKey(chunk_id)) {
+            addAuxStoredOccurrences(chunk_id, peer_id);
             return false;
         }
 
@@ -269,11 +270,11 @@ public class Store {
     }
 
     public boolean hasReplicationDegree(String chunk_id) {
-       return (checkStoredChunksOccurrences(chunk_id) >= this.stored_chunks_occurrences.get(chunk_id).first);
+        return (checkStoredChunksOccurrences(chunk_id) >= this.stored_chunks_occurrences.get(chunk_id).first);
     }
 
     public boolean hasMoreThanReplicationDegree(String chunk_id) {
-        return (checkStoredChunksOccurrences(chunk_id) >= this.stored_chunks_occurrences.get(chunk_id).first);
+        return (checkStoredChunksOccurrences(chunk_id) > this.stored_chunks_occurrences.get(chunk_id).first);
     }
 
     public Integer getReplicationDegree(String chunk_id) {
@@ -301,8 +302,31 @@ public class Store {
 
     }
 
-    public void remove_stored_chunks_occurrences(String chunk_id) {
+    public void removeStoredChunksOccurrences(String chunk_id) {
         this.stored_chunks_occurrences.remove(chunk_id);
+    }
+
+    //---------------------------- BACKUP ENHANCEMENT AUXILIARY HASHMAP ----------------------------------
+    private void addAuxStoredOccurrences(String chunk_id, int peer_id) {
+        if(!aux_stored_occurrences.containsKey(chunk_id)) {
+            ArrayList<Integer> peers = new ArrayList<>();
+            peers.add(peer_id);
+            aux_stored_occurrences.put(chunk_id, peers);
+        }
+        else if(!aux_stored_occurrences.get(chunk_id).contains(peer_id)){
+            aux_stored_occurrences.get(chunk_id).add(peer_id);
+        }
+    }
+    public int checkAuxStoredOccurrences(String chunk_id) {
+        if(aux_stored_occurrences.containsKey(chunk_id)){
+            return aux_stored_occurrences.get(chunk_id).size();
+        }
+        else return -1;
+    }
+
+    public void removeAuxStoredOccurrences(String chunk_id) {
+        if(aux_stored_occurrences.containsKey(chunk_id))
+            aux_stored_occurrences.remove(chunk_id);
     }
 
     //---------------------------- BACKUP CHUNKS ----------------------------------
@@ -318,27 +342,31 @@ public class Store {
         else this.backup_chunks_occurrences.put(chunk_id, new Pair<>(replication_degree, new ArrayList<>()));
     }
 
-    public void addBackupChunksOccurrences(String chunk_id, int peer_id) {
+    //returns true in case there
+    public boolean addBackupChunksOccurrences(String chunk_id, int peer_id, boolean enhanced_version) {
         if(this.backup_chunks_occurrences.containsKey(chunk_id)){
             Pair<Integer, ArrayList<Integer>> pair = this.backup_chunks_occurrences.get(chunk_id);
 
-            if(pair.second.contains(peer_id)){
-                return;
-            }
+            if(pair.second.contains(peer_id))
+                return false;
+
+            if(enhanced_version && (checkBackupChunksOccurrences(chunk_id) >= getBackupChunkReplicationDegree(chunk_id)))
+                return true;
 
             pair.second.add(peer_id);
             this.backup_chunks_occurrences.replace(chunk_id, pair);
         }
+        return false;
     }
 
     public int checkBackupChunksOccurrences(String chunk_id) {
-        if(this.backup_chunks_occurrences.get(chunk_id) != null)
-            return this.backup_chunks_occurrences.get(chunk_id).second.size();
+        if(backup_chunks_occurrences.get(chunk_id) != null)
+            return backup_chunks_occurrences.get(chunk_id).second.size();
         return -1;
     }
 
-    public int getBackupChunkReplicationDegree(String file_id) {
-        return backup_chunks_occurrences.get(file_id).first;
+    public int getBackupChunkReplicationDegree(String chunk_id) {
+        return backup_chunks_occurrences.get(chunk_id).first;
     }
 
     public void removeBackupChunkOccurrence(String chunk_id, Integer peer_id) {

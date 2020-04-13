@@ -15,47 +15,57 @@ in the command line. This script compiles all java files in the src folder.
 All peers have the same prefix: "thisispeer" and are followed by a suffix, that when generated automatically (by initiate_peers.sh) corresponds to an integer.
 
 It is possible to initiate several peers at the same time calling:
- > sh ./initiate_peers.sh <n_peers> [<start_sufix\>] [<-k\>]
+ > sh ./initiate_peers.sh <n_peers> <version> [<start_suffix\>] [-k]
 
-n_peers is the number of peers to initiate.
+n_peers is the number of peers to initiate with the designated version (1.0 or 2.0).
+
 start suffix and -k are optional.
+
 -k is a flag to finish all previously initiated peers.
+
 start_suffix defines an inferior limit for the interval of peer access point generated ([start_suffix , start_suffix + n_peers]); it is useful when X peers have been initiated and now we want to create Y more peers, we should start with a suffix of X+1
-If start_sufix is not given, it will initiate peers with a suffix from 1 to n_peers.
+
+If start_suffix is not given, it will initiate peers with a suffix from 1 to n_peers.
+
+<br>
 
 To initiate one single peer:
- > sh ./initiate_single_peer.sh <sufix\>
+ > sh ./initiate_single_peer.sh <version\> <suffix\>
 
-This will initiate a single peer with the specified sufix.
+This will initiate a single peer with the designated version (1.0 or 2.0) and the specified suffix.
 
-**Note**: Each peer initiated opens and executes in a new terminal window.
+<br> 
+
+**Notes**: 
+- There are only two versions: 1.0 (basic) and 2.0 (enhanced).
+- Each peer initiated opens and executes in a new terminal window.
 
 
 ## Finish peers 
 It is possible to finish all peers through:
  > sh ./finish_peers.sh
 
-Or one single peer by calling a similar script and indicating its sufix:
- > sh ./finish_single_peer.sh <sufix\>
+Or one single peer by calling a similar script and indicating its suffix:
+ > sh ./finish_single_peer.sh <suffix\>
 
 
 ## Run the TestApp
 To execute a protocol through the TestApp, run:
- > sh ./run_app <peer sufix\> <protocol\> <argument\>*
+ > sh ./run_app <peer suffix\> <protocol\> <argument\>*
 
 Next are specified the arguments of each protocol:
 
 For BACKUP:
- > sh ./run_app.sh <peer sufix\> BACKUP <file path\> <replication degree\>
+ > sh ./run_app.sh <peer suffix\> BACKUP <file path\> <replication degree\>
 
 For RESTORE:
- > sh ./run_app.sh <peer sufix\> RESTORE <file path\>
+ > sh ./run_app.sh <peer suffix\> RESTORE <file path\>
 
 For DELETE:
- > sh ./run_app.sh <peer sufix\> DELETE <file path\>
+ > sh ./run_app.sh <peer suffix\> DELETE <file path\>
 
 For RECLAIM:
- > sh ./run_app.sh <peer sufix\> RECLAIM <space\>
+ > sh ./run_app.sh <peer suffix\> RECLAIM <space\>
 
 For STATE:
- > sh ./run_app.sh <peer sufix\> STATE
+ > sh ./run_app.sh <peer suffix\> STATE

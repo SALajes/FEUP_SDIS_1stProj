@@ -67,8 +67,9 @@ public class Peer implements RemoteInterface {
         try{
             version = Double.parseDouble(args[0]);
 
-            if( version != Macros.VERSION) {
-                System.out.println("Not default version");
+            if( version != Macros.BASIC_VERSION && version != Macros.ENHANCED_VERSION ) {
+                System.out.println("Not a recognizable version");
+                System.exit(-1);
             }
 
             //since we are using RMI transport protocol, then the access_point is <remote_object_name>
@@ -120,7 +121,6 @@ public class Peer implements RemoteInterface {
 
         return 0;
     }
-
 
     /**
      *
@@ -202,7 +202,7 @@ public class Peer implements RemoteInterface {
 
     @Override
     public String state() {
-        String state = "|------- THISISPEER " + Peer.id + " -------|\n";
+        String state = "------- THISISPEER " + Peer.id + " -------\n";
         state += retrieveBackupState() + "\n";
 
         state += retrieveStoredChunksState() + "\n";

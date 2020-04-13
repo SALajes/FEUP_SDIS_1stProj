@@ -1,6 +1,7 @@
 sh ./build.sh
 
-sh ./initiate_peers.sh 10 -k
+sh ./initiate_peers.sh 6 2.0 -k
+sh ./initiate_peers.sh 4 2.0 7
 
 sleep 3
 
