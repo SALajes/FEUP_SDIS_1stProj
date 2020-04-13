@@ -19,15 +19,12 @@ import project.channel.*;
 import project.chunk.ChunkFactory;
 import project.message.InvalidMessageException;
 import project.protocols.BackupProtocol;
-import project.protocols.DeleteEnhancementProtocol;
 import project.protocols.DeleteProtocol;
 import project.protocols.RestoreProtocol;
 import project.store.FileManager;
 import project.store.FilesListing;
 import project.store.Pair;
 import project.store.Store;
-
-import javax.crypto.Mac;
 
 public class Peer implements RemoteInterface {
     private static final int RegistryPort = 1099;
@@ -179,58 +176,21 @@ public class Peer implements RemoteInterface {
 
          */
 
-        // Remove entry with the file_name and correspond file_id from allFiles
-        FilesListing.getInstance().delete_file_records(file_name, file_id);
-
-        System.out.println("Deleting chunks in all peers");
         //sends message REMOVE to all peers
         DeleteProtocol.sendDelete(Peer.version, Peer.id, file_id);
 
-        return 0;
-    }
-
-    @Override
-    public int delete_enhancement(String file_path) throws RemoteException, InvalidFileException {
-        final String file_name = new File(file_path).getName();
-
-        //gets the file_id from the entry with key file_name form allFiles
-        String file_id;
-
-        try{
-            file_id = FilesListing.getInstance().getFileId(file_name);
-        }
-        catch(Exception e){
-            throw new InvalidFileException("File name not found");
-        }
-
-        //sends message REMOVE to all peers
-        DeleteEnhancementProtocol.sendDelete(Macros.VERSION_ENHANCEMENT, Peer.id, file_id);
-
-        System.out.println("Deletion of all chunks of a file from the backup service completed");
-
-        /*
-        The coded below deleted any restore file that could exists. However the protocol doesn't says to do it.
-
-        System.out.println("Deleting file " + file_id + " and its folder");
-        FileManager.deleteFileFolder(Store.getInstance().getRestoredDirectoryPath() + file_name);
-
-         */
-
-        if (Store.getInstance().check_if_all_deleted(file_id)) {
-            System.out.println("Delete all chunks of the file " + file_id);
-
-            Integer number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
-            for(int i = 0; i< number_of_chunks; i++ ) {
-                String chunk_id = file_id + "_" + i;
-                Store.getInstance().removeBackupChunksOccurrences( chunk_id);
-            }
+        if(Peer.version == Macros.VERSION) {
 
             // Remove entry with the file_name and correspond file_id from allFiles
-            FilesListing.getInstance().delete_file_records(file_name, file_id); //no reason to keep them
+            FilesListing.getInstance().delete_file_records(file_name, file_id);
+
+            System.out.println("Deleting chunks in all peers");
+
         }
 
         return 0;
     }
+
 
     /**
      *

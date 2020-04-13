@@ -32,15 +32,10 @@ public class MulticastControlChannel extends Channel {
                     RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
                     break;
                 case DELETE:
-                    if(message.getVersion() == Macros.VERSION){
-                        DeleteProtocol.receiveDelete((DeleteMessage) message);
-                    }
-                    else{
-                        DeleteEnhancementProtocol.receiveDelete((DeleteMessage) message);
-                    }
+                    DeleteProtocol.receiveDelete((DeleteMessage) message);
                     break;
                 case RECEIVEDELETE:
-                    DeleteEnhancementProtocol.receiveReceiveDelete((ReceiveDeleteMessage) message);
+                    DeleteProtocol.receiveReceiveDelete((ReceiveDeleteMessage) message);
                     break;
                 case REMOVED:
                     ReclaimProtocol.receiveRemoved((RemovedMessage) message);

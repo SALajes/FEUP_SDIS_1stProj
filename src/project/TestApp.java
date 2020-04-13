@@ -71,15 +71,6 @@ public class TestApp {
                     //delete that file
                     peer.delete(opnd_1);
                     break;
-                case "DELETE_ENHANCEMENT":
-                    if (args.length != 3) {
-                        System.err.println("Expected 3 arguments, given" + args.length);
-                        System.err.println("Usage: java project.TestApp <peer_ap> DELETE_ENHANCEMENT <file_path>");
-                        System.exit(-4);
-                    }
-                    //delete that file
-                    peer.delete_enhancement(opnd_1);
-                    break;
                 case "RECLAIM":
                     if (args.length != 3) {
                         System.err.println("Expected 3 arguments, given" + args.length);

@@ -70,7 +70,6 @@ public class FilesListing {
              */
 
             /*
-
             System.out.println("Deleting " + pair.second + " chunks from the out of date file");
 
             //deletes file from network storage
@@ -107,9 +106,9 @@ public class FilesListing {
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(Store.getInstance().getFilesInfoDirectoryPath()));
             objectOutputStream.writeObject(this);
+
         } catch (Exception e) {
             e.getStackTrace();
-            System.out.println("Couldn't get files info to the disk");
             return false;
         }
         return true;
@@ -124,7 +123,6 @@ public class FilesListing {
         //if file is empty there is nothing to have in the concurrentMap
         if (new File(Store.getInstance().getFilesInfoDirectoryPath()).length() == 0) {
             files = new ConcurrentHashMap<>();
-            System.out.println("There isn't previous file info.");
             return true;
         }
 
