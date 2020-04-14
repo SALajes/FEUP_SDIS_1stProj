@@ -1,4 +1,9 @@
 # sdis1920-t1g07
+
+## Java SE
+The Java SE 11.0.6 was the version used on the development of this project.
+
+## Scripts
 Scripts were developed in order to run the program more easily, these can be found in "demo" folder of this project's root.
 
 To run the scripts, please go to the demo folder.
