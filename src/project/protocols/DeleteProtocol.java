@@ -28,7 +28,7 @@ public class DeleteProtocol {
     }
 
     public static void receiveDelete(DeleteMessage deleteMessage){
-        String file_id = deleteMessage.getFile_id();
+        String file_id = deleteMessage.getFileId();
 
         //delete all files and records in stored
         FileManager.deleteFileFolder(Store.getInstance().getStoreDirectoryPath() + file_id);
@@ -88,8 +88,8 @@ public class DeleteProtocol {
 
     public static void receiveDeleteReceived(DeleteReceivedMessage message) {
 
-        Integer peer_id = message.getSender_id();
-        String file_id = message.getFile_id();
+        Integer peer_id = message.getSenderId();
+        String file_id = message.getFileId();
 
         String file_name = FilesListing.getInstance().getFileName(file_id);
         Integer number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
@@ -101,7 +101,7 @@ public class DeleteProtocol {
 
         }
 
-        System.out.println("Confirm deletion all chunks of file " + file_id + " on peer " + message.getSender_id());
+        System.out.println("Confirm deletion all chunks of file " + file_id + " on peer " + message.getSenderId());
     }
 }
 

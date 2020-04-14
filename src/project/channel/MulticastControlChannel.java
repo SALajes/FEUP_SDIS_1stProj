@@ -19,17 +19,19 @@ public class MulticastControlChannel extends Channel {
             byte [] raw_message = packet.getData();
             BaseMessage message = MessageParser.parseMessage(raw_message, raw_message.length);
 
-            if(message.getSender_id() == Peer.id){
+            if(message.getSenderId() == Peer.id){
                 return;
             }
 
-            switch (message.getMessage_type()) {
+            switch (message.getMessageType()) {
                 case STORED:
                     BackupProtocol.receiveStored((StoredMessage) message);
                     break;
                 case GETCHUNK:
-                    RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
-                    break;
+                   RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
+                   break;
+                case GETCHUNKENHANCED:
+                    RestoreProtocol.receiveGetchunkEnhacement((GetChunkEnhancementMessage) message);
                 case DELETE:
                     DeleteProtocol.receiveDelete((DeleteMessage) message);
                     break;
@@ -40,7 +42,7 @@ public class MulticastControlChannel extends Channel {
                     ReclaimProtocol.receiveRemoved((RemovedMessage) message);
                     break;
                 default:
-                    System.out.println("Invalid message type for Control Channel: " + message.getMessage_type());
+                    System.out.println("Invalid message type for Control Channel: " + message.getMessageType());
                     break;
             }
         } catch (InvalidMessageException e) {
