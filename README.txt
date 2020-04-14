@@ -72,9 +72,9 @@ For STATE:
 
 
 
-##Directories
+##Filesystem Structure
 
-Each peer has its own directory, being [peer id]_directory. 
+In order to allow the test of several peers on a single computer, each peer uses its own filesystem subtree to keep the chunks it is backing up, the files it has recovered, its own metadata and files. The name of that subtree is the format [peer id]_directory.
 Inside this directory there are three folders, one for the own files, named “files”, other of the restored files, name “restored” .
 There is a third folder for the store chunks, which are the other peer chunks, named “stored”.
 When a chunk is store, a folder with is file id is created, and the chunks add are inside that folder with a name that corresponds to is chunk number.
