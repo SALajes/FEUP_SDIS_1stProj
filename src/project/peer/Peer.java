@@ -144,7 +144,7 @@ public class Peer implements RemoteInterface {
 
         int number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
 
-        RestoreProtocol.sendGetchunk(Peer.version, Peer.id, file_id, number_of_chunks);
+        RestoreProtocol.sendGetchunk(file_id, number_of_chunks);
 
         Store.getInstance().addRestoredFile(file_id, file_name);
 
@@ -207,7 +207,7 @@ public class Peer implements RemoteInterface {
     public String state() {
         String state = "\n------- THISISPEER " + Peer.id + " -------\n";
         state += "------- ( " + Peer.service_access_point + " ) -------\n";
-        state += "-----------------------------------------------------\n\n";
+        state += "------------------------------------\n\n";
 
         state += retrieveBackupState() + "\n";
 

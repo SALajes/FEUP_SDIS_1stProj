@@ -20,18 +20,18 @@ public class MulticastDataBackupChannel extends Channel {
 
             BaseMessage message = MessageParser.parseMessage(raw_message, packet.getLength());
 
-            if(message.getSender_id() == Peer.id){
+            if(message.getSenderId() == Peer.id){
                 return;
             }
 
-            switch(message.getMessage_type()){
+            switch(message.getMessageType()){
                 case PUTCHUNK:
                     BackupProtocol.receivePutchunk((PutChunkMessage) message);
                     break;
                 case CANCELBACKUP:
                     BackupProtocol.receiveCancelBackup((CancelBackupMessage) message);
                     break;
-                default: System.out.println("Invalid message type for DataBackup Channel: " + message.getMessage_type());
+                default: System.out.println("Invalid message type for DataBackup Channel: " + message.getMessageType());
             }
 
         } catch (InvalidMessageException e) {

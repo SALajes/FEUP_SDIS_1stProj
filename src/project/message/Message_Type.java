@@ -8,5 +8,6 @@ public enum Message_Type {
     DELETE,
     REMOVED,
     CANCELBACKUP,
-    DELETERECEIVED
+    DELETERECEIVED,
+    GETCHUNKENHANCED
 }

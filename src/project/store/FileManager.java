@@ -65,7 +65,6 @@ public class FileManager {
             if (directory.mkdir()) {
                 return true;
             } else {
-                System.out.println("Directory " + directory + " wasn't created!");
                 return false;
             }
         }
@@ -278,13 +277,13 @@ public class FileManager {
     }
     public static boolean removeChunk(String file_id, int chunk_number, boolean reclaim_protocol) {
 
-        System.out.println("Deleting chunk "+ chunk_number + " with id:" + file_id);
-
         //check if the chunk exists
         if (!Store.getInstance().checkStoredChunk(file_id, chunk_number)) {
             System.out.println("A chunk with number " + chunk_number + " and file_id " + file_id + " doesn't exists.");
             return true;
         }
+
+        System.out.println("Deleting chunk "+ chunk_number + " with id:" + file_id);
 
         //chunk will be in stored_directory/file_id/chunk_no
         String chunk_dir = Store.getInstance().getStoreDirectoryPath() + file_id + "/"+ chunk_number;
@@ -292,7 +291,7 @@ public class FileManager {
         File chunk_file = new File(chunk_dir);
 
         if( !chunk_file.exists() ){
-            System.out.println("File doesn't exists in the correct path ");
+            System.out.println("File doesn't exist in the correct path ");
             return false;
         }
 

@@ -25,28 +25,22 @@ public class ReclaimProtocol {
 
     public static void receiveRemoved(RemovedMessage removedMessage ){
 
-        String file_id = removedMessage.getFile_id();
+        String file_id = removedMessage.getFileId();
         Integer chunk_number = removedMessage.getChunkNo();
         String chunk_id = file_id + "_" + chunk_number;
-
-        System.out.println("------------------");
-        System.out.println("Received remove: with file_id " + file_id +
-                " and chunk number "+ chunk_number);
-        System.out.println("------------------");
 
         //check if this is this peer with a file
         if(Store.getInstance().checkBackupChunksOccurrences(chunk_id) != -1) {
 
             //update local count of this chunk replication degree
-            Store.getInstance().removeBackupChunkOccurrence(chunk_id, removedMessage.getSender_id());
+            Store.getInstance().removeBackupChunkOccurrence(chunk_id, removedMessage.getSenderId());
 
         } else if (Store.getInstance().checkStoredChunksOccurrences(chunk_id) != -1 ){
 
-            Store.getInstance().removeStoredChunkOccurrence(chunk_id, removedMessage.getSender_id() );
+            Store.getInstance().removeStoredChunkOccurrence(chunk_id, removedMessage.getSenderId() );
 
             //check if count drops below the desired replication degree of that chunk
             if(!Store.getInstance().hasReplicationDegree(chunk_id)) {
-                System.out.println("File lost is replication degree");
 
                 Chunk chunk = FileManager.retrieveChunk(file_id, chunk_number);
 
