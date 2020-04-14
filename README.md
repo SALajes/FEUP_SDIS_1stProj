@@ -15,7 +15,7 @@ in the command line. This script compiles all java files in the src folder.
 All peers have the same prefix: "thisispeer" and are followed by a suffix, that when generated automatically (by initiate_peers.sh) corresponds to an integer.
 
 It is possible to initiate several peers at the same time calling:
- > sh ./initiate_peers.sh <n_peers> <version> [<start_suffix\>] [-k]
+ > sh ./initiate_peers.sh <n_peers\> <version\> [<start_suffix\>] [-k]
 
 n_peers is the number of peers to initiate with the designated version (1.0 or 2.0).
 <br>
