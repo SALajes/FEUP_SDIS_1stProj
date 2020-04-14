@@ -144,7 +144,7 @@ public class Peer implements RemoteInterface {
 
         int number_of_chunks = FilesListing.getInstance().get_number_of_chunks(file_name);
 
-        RestoreProtocol.sendGetchunk(file_id, number_of_chunks);
+        RestoreProtocol.sendGetChunk(file_id, number_of_chunks);
 
         Store.getInstance().addRestoredFile(file_id, file_name);
 

@@ -2,11 +2,15 @@
 
 ## Java SE
 The Java SE 11.0.6 was the version used on the development of this project.
+The 'project' module is located inside 'src' folder.
+
+## Report
+The report describing this project's concurrency and enhancements implementations can be found on 'documents' folder.
 
 ## Scripts
-Scripts were developed in order to run the program more easily, these can be found in "demo" folder of this project's root.
+Scripts were developed in order to run the program more easily, these can be found in 'demo' folder of this project's root.
 
-To run the scripts, please go to the demo folder.
+To run the scripts, please go to the 'demo' folder.
 
 
 ## Build

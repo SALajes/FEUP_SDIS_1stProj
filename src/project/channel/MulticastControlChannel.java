@@ -28,10 +28,10 @@ public class MulticastControlChannel extends Channel {
                     BackupProtocol.receiveStored((StoredMessage) message);
                     break;
                 case GETCHUNK:
-                   RestoreProtocol.receiveGetchunk((GetChunkMessage) message);
+                   RestoreProtocol.receiveGetChunk((GetChunkMessage) message);
                    break;
                 case GETCHUNKENHANCED:
-                    RestoreProtocol.receiveGetchunkEnhacement((GetChunkEnhancementMessage) message);
+                    RestoreProtocol.receiveGetChunkEnhancement((GetChunkEnhancementMessage) message);
                 case DELETE:
                     DeleteProtocol.receiveDelete((DeleteMessage) message);
                     break;

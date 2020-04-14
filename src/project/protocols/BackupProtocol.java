@@ -94,13 +94,14 @@ public class BackupProtocol {
 
         if(FilesListing.getInstance().getFileName(file_id) != null) {
             if(Store.getInstance().addBackupChunksOccurrences(chunk_id, peer_id, Peer.version == Macros.ENHANCED_VERSION && stored.getVersion() == Macros.ENHANCED_VERSION)) {
-                Runnable task = ()-> cancelBackup(stored);
+                //condition is true is the replication degree has been accomplished
+                Runnable task = ()-> sendCancelBackup(stored);
                 Peer.scheduled_executor.execute(task);
             }
         } else {
             if(Peer.version == Macros.ENHANCED_VERSION && stored.getVersion() == Macros.ENHANCED_VERSION) {
                 if(!Store.getInstance().hasReplicationDegree(chunk_id)){
-                    //adds replication degree of the stored file
+                    //adds to the replication degree of the stored file
                     Store.getInstance().addReplicationDegree(chunk_id, peer_id);
                 }
             }
@@ -108,14 +109,13 @@ public class BackupProtocol {
         }
     }
 
-    private static void cancelBackup(StoredMessage stored) {
+    private static void sendCancelBackup(StoredMessage stored) {
         CancelBackupMessage message = new CancelBackupMessage(Peer.version, Peer.id, stored.getFileId(), stored.getChunkNo(), stored.getSenderId());
         Peer.MDB.sendMessage(message.convertMessage());
     }
 
     public static void receiveCancelBackup(CancelBackupMessage cancel_backup){
         if(Peer.id == cancel_backup.getReceiver_id()){
-            //delete all files and records in stored
             FileManager.removeChunk(cancel_backup.getFileId(), cancel_backup.getChunkNo(), false);
         }
     }
