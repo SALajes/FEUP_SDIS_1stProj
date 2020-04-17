@@ -52,14 +52,12 @@ public class Peer implements RemoteInterface {
         channel_executor.submit(MDR);
 
         scheduled_executor = new ScheduledThreadPoolExecutor(0);
-
-        id = UUID.randomUUID().hashCode();
     }
 
     //class methods
     public static void main(String[] args){
-        if(args.length != 8){
-            System.out.println("Usage: [package]Peer <protocol_version> <service_access_point> " +
+        if(args.length != 9){
+            System.out.println("Usage: [package]Peer <protocol_version> <peer_id> <service_access_point> " +
                     "<MC_address> <MC_port> <MDB_address> <MDB_port> <MDR_address> <MDR_port>");
             return;
         }
@@ -72,10 +70,12 @@ public class Peer implements RemoteInterface {
                 System.exit(-1);
             }
 
-            //since we are using RMI transport protocol, then the access_point is <remote_object_name>
-            service_access_point = args[1];
+            id = Integer.parseInt(args[1]);
 
-            Peer object_peer = new Peer(args[2], Integer.parseInt(args[3]), args[4], Integer.parseInt(args[5]), args[6], Integer.parseInt(args[7]));
+            //since we are using RMI transport protocol, then the access_point is <remote_object_name>
+            service_access_point = args[2];
+
+            Peer object_peer = new Peer(args[3], Integer.parseInt(args[4]), args[5], Integer.parseInt(args[6]), args[7], Integer.parseInt(args[8]));
             RemoteInterface stub = (RemoteInterface) UnicastRemoteObject.exportObject(object_peer, 0);
 
             Registry registry;
