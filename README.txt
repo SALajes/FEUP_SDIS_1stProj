@@ -8,72 +8,16 @@ The 'project' module is located inside 'src' folder.
 The report describing this project's concurrency and enhancements implementations can be found on 'documents' folder.
 
 ## Scripts
-Scripts were developed in order to run the program more easily, these can be found in 'demo' folder of this project's root.
+The scripts for the demo were included as requested:
 
-To run the scripts, please go to the 'demo' folder.
+- compile.sh (since our src folder has one project package with many subpackages inside, we had to make a slight change in the project's structure)
+- peer.sh
+- test.sh
+- cleanup.sh (added code fragment for deleting a peer's designated directory)
 
+(setup.sh and rmiregistry.sh were not included for they were not necessary: the program creates the directories for each peer and creates the registry if it doesn't already exist)
 
-## Build
-To build, simply call:
-  > sh ./build.sh
-
-in the command line. This script compiles all java files in the src folder.
-
-
-## Initiate peers
-All peers have the same prefix: "thisispeer" and are followed by a suffix, that when generated automatically (by initiate_peers.sh) corresponds to an integer.
-
-It is possible to initiate several peers at the same time calling:
- > sh ./initiate_peers.sh <n_peers\> <version\> [<start_suffix\>] [-k]
-
- - n_peers is the number of peers to initiate with the designated version (1.0 or 2.0).
- - start suffix and -k are optional.
- - -k is a flag to finish all previously initiated peers.
- - start_suffix defines an inferior limit for the interval of peer access point generated ([start_suffix , start_suffix + n_peers]); it is useful when X peers have been initiated and now we want to create Y more peers, we should start with a suffix of X+1.
- - If start_suffix is not given, it will initiate peers with a suffix from 1 to n_peers.
-
-
-To initiate one single peer:
- > sh ./initiate_single_peer.sh <version\> <suffix\>
-
-This will initiate a single peer with the designated version (1.0 or 2.0) and the specified suffix.
-
-
-
-**Notes**: 
-- There are only two versions: 1.0 (basic) and 2.0 (enhanced).
-- Each peer initiated opens and executes in a new terminal window.
-
-
-## Finish peers 
-It is possible to finish all peers through:
- > sh ./finish_peers.sh
-
-Or one single peer by calling a similar script and indicating its suffix:
- > sh ./finish_single_peer.sh <suffix\>
-
-
-## Run the TestApp
-To execute a protocol through the TestApp, run:
- > sh ./run_app <peer suffix\> <protocol\> <argument\>*
-
-Next are specified the arguments of each protocol:
-
-For BACKUP:
- > sh ./run_app.sh <peer suffix\> BACKUP <file path\> <replication degree\>
-
-For RESTORE:
- > sh ./run_app.sh <peer suffix\> RESTORE <file path\>
-
-For DELETE:
- > sh ./run_app.sh <peer suffix\> DELETE <file path\>
-
-For RECLAIM:
- > sh ./run_app.sh <peer suffix\> RECLAIM <space\>
-
-For STATE:
- > sh ./run_app.sh <peer suffix\> STATE
-
+Note: We had previously developed scripts for a demo. The scripts and text file explaining how to run it can be found in 'initial_demo' folder of this project's root.
 
 
 ##Filesystem Structure

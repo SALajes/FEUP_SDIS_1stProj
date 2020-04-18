@@ -64,7 +64,7 @@ while [ "$n_peers" -gt 0 ]
 do
   n=$((suffix-1+n_peers))
   access_point="$PEER$n"
-  x-terminal-emulator -e java project.peer.Peer "$version" "$access_point" 224.0.0.0 8000 224.0.0.64 8001 224.0.0.128 8002
+  x-terminal-emulator -e java project.peer.Peer "$version" "$n" "$access_point" 224.0.0.0 8000 224.0.0.64 8001 224.0.0.128 8002
   echo "Initiated peer with access point: ${access_point}"
   n_peers=$((n_peers-1))
 done
