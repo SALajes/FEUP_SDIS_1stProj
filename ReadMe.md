@@ -20,10 +20,11 @@ The scripts for the demo were included as requested:
 
 (setup.sh and rmiregistry.sh were not included for they were not necessary: the program creates the directories for each peer and creates the registry if it doesn't already exist)
 
+
 Note: We had previously developed scripts for a demo. The scripts and text file explaining how to run it can be found in 'initial_demo' folder of this project's root.
 
 
-##Filesystem Structure
+## Filesystem Structure
 
 In order to allow the test of several peers on a single computer, each peer uses its own filesystem subtree to keep the chunks it is backing up, the files it has recovered, its own metadata and files. The name of that subtree is the format [peer id]_directory.
 Inside this directory there are three folders, one for the own files, named “files”, other of the restored files, name “restored” .
@@ -32,6 +33,6 @@ When a chunk is store, a folder with is file id is created, and the chunks add a
 
 
 
-##Authors
+## Authors
 Maria Helena Ferreira -- *up201704508*</br>
 Sofia de Araújo Lajes -- *up201704066*
