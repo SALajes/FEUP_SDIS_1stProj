@@ -1,4 +1,7 @@
-# sdis1920-t1g07
+# Distributed Systems / Sistemas Distribuídos - 2019/2020
+First project of SDIS curricular unit: **Distributed Backup Service**
+
+Link for the first project: https://github.com/SALajes/FEUP_SDIS_2ndProj
 
 ## Java SE
 The Java SE 11.0.6 was the version used on the development of this project.
