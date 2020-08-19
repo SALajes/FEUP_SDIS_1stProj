@@ -1,7 +1,7 @@
 # Distributed Systems / Sistemas Distribuídos - 2019/2020
 First project of SDIS curricular unit: **Distributed Backup Service**
 
-Link for the first project: https://github.com/SALajes/FEUP_SDIS_2ndProj
+Link for the second project: https://github.com/SALajes/FEUP_SDIS_2ndProj
 
 ## Java SE
 The Java SE 11.0.6 was the version used on the development of this project.
@@ -33,5 +33,5 @@ When a chunk is store, a folder with is file id is created, and the chunks add a
 
 
 ##Authors
-Maria Helena Ferreira -- *up201704508*
+Maria Helena Ferreira -- *up201704508*</br>
 Sofia de Araújo Lajes -- *up201704066*
